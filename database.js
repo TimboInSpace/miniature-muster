@@ -61,7 +61,6 @@ class DbConnection {
             this.db.run("DROP TABLE IF EXISTS Modifiers;");
             this.db.run("DROP TABLE IF EXISTS UnitModifiers;");
             rebuildQueries.forEach( (qry) => {
-                console.info(`Running query: ${qry}`);
                 this.db.run(qry, (err) => {if (err) {console.log(`${qry}:\n${err}`);}});
             });
             // queries.insertSampleData.forEach( (qry) => {

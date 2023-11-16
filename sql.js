@@ -90,6 +90,9 @@ const initializeUnitModifiers = `INSERT INTO UnitModifiers (unitID, modifierID) 
 (3, 8)
 `;
 
+const selectAllUnits = `SELECT * FROM Units;`;
+const selectAllModifiers = `SELECT * FROM Modifiers;`;
+const selectAllUnitModifiers = `SELECT * FROM UnitModifiers;`;
 const selectAllUnitsWithModifiers = `
 SELECT * FROM Units U LEFT JOIN UnitModifiers UM ON U.unitID = UM.unitID LEFT JOIN Modifiers M ON M.modifierID = UM.modifierID;
 `;
@@ -105,4 +108,8 @@ module.exports = {
     initializeModifiers,
     createTableUnitModifiers,
     initializeUnitModifiers,
+    selectAllUnits,
+    selectAllModifiers,
+    selectAllUnitModifiers,
+    selectAllUnitsWithModifiers,
 }

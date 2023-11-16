@@ -1,6 +1,8 @@
 main {
   padding: 2rem;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  height: calc(100vh - 6rem);
+  overflow-y: scroll;
 }
 
 body {
@@ -68,6 +70,26 @@ footer {
 .flex-row {
   display: flex;
   flex-direction: row;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.unit-details .unit-header > *:first-child {
+  flex-grow: 1;
+}
+.unit-details .stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 3fr;
+}
+.unit-details .stats-grid * {
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.unit-details .stats-grid .grid-header {
+  font-weight: bolder;
 }
 
 /*# sourceMappingURL=style.css.map */

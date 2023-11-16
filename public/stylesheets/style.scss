@@ -6,6 +6,8 @@ $secondary: grey;
 main {
   padding: 2rem;
   font: $text-main;
+  height: calc(100vh - 6rem);
+  overflow-y: scroll;
 }
 
 body {
@@ -79,3 +81,30 @@ footer {
   display: flex;
   flex-direction: row;
 }
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.unit-details {
+  .unit-header {
+    > * {
+      &:first-child {
+        flex-grow: 1;
+      }
+    }
+    
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 3fr;
+    * {
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+    .grid-header {
+      font-weight: bolder;
+    }
+  }
+}
+

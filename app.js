@@ -21,9 +21,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 // Connect to the database
-connection = require('./database.js').getConnection();
-app.db = connection;
-app.db.getData();
+const connection = require('./database.js').getConnection();
+app.locals.db = connection;
+app.locals.test = "test";
+app.locals.allunits = app.locals.db.getData();
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

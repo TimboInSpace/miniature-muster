@@ -23,6 +23,9 @@ function setCookie(cookieName, cookieValue, expirationDays = 5) {
 }
 
 function renderStep() {
+/*
+    Before switching "steps", render any content into the window
+*/
     const tabs = tabcontainer.querySelectorAll('.tab');
     const currentTab = tabs[state.step-1];
     switch (state.step) {
@@ -41,6 +44,19 @@ function renderStep() {
             currentTab.querySelector('.prev-step-button').disabled = true;
             break;
         case 2:
+            // There should be arrays for units, modifiers, unitmodifiers, and unitswithmodifiers:
+            // render the units
+            console.log(units);
+            const playerList = document.getElementById('unitSelectionPlayer');
+            renderSelectionList(playerList, state.players.map((val,idx) => {return idx}), state.players);
+            const unitList = document.getElementById('unitSelectionList');
+            renderSelectionList(unitList, units.map((unit,i) => {
+                return unit.unitID;
+            }), units.map((unit, i) => {
+                const modifiers = getModifiersForUnit(unit.unitID);
+                // TODO: Add in a section for modifiers
+                return `<span>${unit.name}</span><br/>`;
+            }), 20);
             break;
         case 3: 
             currentTab.querySelector('.next-step-button').disabled = true;
@@ -48,6 +64,77 @@ function renderStep() {
         default:
             break;
     }
+}
+
+function getModifiersForUnit(unit) {
+    return unitmodifiers.filter(m => m.unitID === unit.unitID)
+        .map( (x,i) => {
+            return modifiers.find(m => m.modifierID === x.modifierID)
+        })
+}
+
+function handleModToggle(event) {
+    const btnEle = event.target.parentElement;
+    const checkboxEle = btnEle.querySelector('.mod-details');
+    console.log('Checkbox state:')
+    console.log(checkboxEle.value);
+}
+
+function renderSelectedUnitDetails(tgt) {
+    const eleName = document.getElementById('unitSelectionUnitName');
+    const elePts = document.getElementById('unitSelectionUnitPts');
+    const eleMods = eleName.parentElement.parentElement.querySelector('.unit-modifiers');
+    const statsGrid = eleName.parentElement.parentElement.querySelector('.stats-grid');
+    // get the unitID from selected item
+    const clickedID = parseInt(tgt.options[tgt.selectedIndex].getAttribute('key'));
+    if (!clickedID) {return;}
+    const unit = units.find((u) => {return u.unitID === clickedID});
+
+    const mods = getModifiersForUnit(unit);
+    let modsHTML = '';
+    mods.forEach( mod => {
+        console.log(mod);
+        modsHTML += `
+            <button class="mod-details" key="${mod.modifierID}" onchange="handleModToggle(ev)">
+                <input type="checkbox" class=""/>
+                <span>${mod.name}</span>
+                <span> ${mod.pts} Pts</span>
+            </button>
+        `;
+    });
+    
+    eleName.innerHTML = `${unit.name}`;
+    elePts.innerHTML = `${unit.pts} Pts`;
+    renderStatsGrid(statsGrid, unit)
+    eleMods.innerHTML = modsHTML;
+}
+
+function renderStatsGrid(statsGridEle, stats) {
+    const gridItems = statsGridEle.children;
+    if (gridItems.length != 14) { console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); return;}
+    gridItems[7].innerHTML = stats.ranged > 0 ? `${stats.melee} / ${stats.ranged}+` : `${stats.melee} / -`;
+    gridItems[8].innerHTML =  `${stats.strength}`;
+    gridItems[9].innerHTML =  `${stats.defence}`;
+    gridItems[10].innerHTML = `${stats.attack}`;
+    gridItems[11].innerHTML = `${stats.wounds}`;
+    gridItems[12].innerHTML = `${stats.courage}`;
+    gridItems[13].innerHTML = `${stats.might} / ${stats.will} / ${stats.fate}`;
+
+}
+
+function renderSelectionList(selectionEle, arrKeys, arrValues, showNum = 1) {
+    let html = '';
+    for(var i=0; i < arrKeys.length; i++) {
+        html += `
+            <option key="${arrKeys[i]}">
+                <span>${arrValues[i]}</span>
+            </option>
+        `;
+    }
+    if (showNum != 1) {
+        selectionEle.setAttribute('size', Math.min(arrKeys.length, showNum));
+    }
+    selectionEle.innerHTML = html;
 }
 
 function showCurrentTab() {
@@ -61,6 +148,8 @@ function showCurrentTab() {
     renderStep(state.step);
     tabs[state.step-1].classList.add('active');
 } 
+
+
 
 function establishCallbacks() {
     // submit action of the playerNameForm
@@ -88,6 +177,24 @@ function establishCallbacks() {
             showCurrentTab();
         });
     });
+    // Unit Selection filter input
+    document.getElementById('unitSelectionSearch').addEventListener('keyup', (ev) => {
+        const tok = ev.target.value;
+        // Filter the <option> elements in the unitSelectionList <select> element
+        const listEle = document.getElementById('unitSelectionList');
+        listEle.querySelectorAll('option').forEach((option) => {
+            if (option.getAttribute('key') === tok || 
+                option.innerHTML.toUpperCase().indexOf(tok.toUpperCase()) > -1) {
+                option.style.display = "block";
+            } else {
+                option.style.display = "none";
+            }
+        });
+    });
+
+    document.getElementById('unitSelectionList').addEventListener('change', (ev) => {
+        renderSelectedUnitDetails(ev.target)
+    });
 }
 
 function addPlayer(txt) {
@@ -104,7 +211,9 @@ const cookie = getCookie("data");
 if (!cookie) {
     state = { step:1, players:[]};
 } else {
-    const cookieJsonObject = JSON.parse(getCookie("data"));
+    console.log('This is the cookie');
+    console.log(JSON.stringify(cookie, null, '  '));
+    const cookieJsonObject = JSON.parse(cookie);
     state = cookieJsonObject?.state;
 }
 
