@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  .tab-container
+    .tab.active
+      p Welcome to #{title}
+      p Please define players 
+      form(id="playerNameForm" action="")
+        input(id="playerNameInput" type="text", placeholder="Player name")
+        input(type="submit" value="ADD")
+      ol#players-list
+      .flex-row.step-buttons
+        button.prev-step-button() PREVIOUS
+        button.next-step-button() CONTINUE
+    .tab
+      h1 Step 2
+      .flex-row.step-buttons
+        button.prev-step-button() PREVIOUS
+        button.next-step-button() CONTINUE
+    .tab
+      h1 Step 3
+      .flex-row.step-buttons
+        button.prev-step-button() PREVIOUS
+        button.next-step-button() CONTINUE

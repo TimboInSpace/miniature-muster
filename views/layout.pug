@@ -1,0 +1,13 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    include header.pug
+    main
+      block content
+        h1 Undefined Page
+        p This page is undefined.
+    include footer.pug
+    script(src='/javascripts/script.js')

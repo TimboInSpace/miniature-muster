@@ -1,0 +1,73 @@
+main {
+  padding: 2rem;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+h1 {
+  font: 14px "Montserrat", Arial, sans-serif;
+  font-size: 2.5rem;
+}
+
+a {
+  color: #00B7FF;
+}
+
+nav.header {
+  height: 3rem;
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+nav.header ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: grey;
+}
+nav.header ul li {
+  display: inline;
+  padding: 0.75rem;
+  line-height: 1.5rem;
+  color: blue;
+}
+nav.header ul li:first-child {
+  flex-grow: 1;
+  font: 14px "Lato", "Courier New", Courier, monospace;
+  font-size: 2.25rem;
+}
+
+.tab-container .tab {
+  display: none;
+}
+.tab-container .tab.active {
+  display: block;
+}
+
+.step-buttons .button {
+  flex-grow: 1;
+}
+
+footer {
+  height: 3rem;
+  background-color: grey;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  font-size: 0.6rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/*# sourceMappingURL=style.css.map */
