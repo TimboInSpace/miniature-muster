@@ -2,6 +2,7 @@ $heading-large: 14px "Montserrat", Arial, sans-serif;
 $text-main: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 $primary: blue;
 $secondary: grey;
+$highlight: #CCCCCC;
 
 main {
   padding: 2rem;
@@ -95,16 +96,54 @@ footer {
     }
     
   }
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 3fr;
-    * {
-      text-overflow: ellipsis;
-      text-align: center;
+  .add-unit-container {
+    .subtotal-label {
+      flex-grow: 1;
+      text-align: right;
     }
-    .grid-header {
+    .subtotal-value {
       font-weight: bolder;
     }
   }
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 3fr;
+  * {
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+  .grid-header {
+    font-weight: bolder;
+  }
+}
+
+.selection-display-pane {
+  * {
+    flex-grow: 1
+  }
+}
+
+.player-tab-control{
+  .player-tab-labels {
+    text-decoration: none;
+    border: none;
+    &.active {
+      background-color: $highlight;
+      border-left: 3px solid #888;
+      border-top: 3px solid #888;
+      border-right: 3px solid #888;
+    }
+  }
+  .player-tab-content {
+    display: none;
+    padding: 20px;
+    border: 1px solid #777;
+    border-radius: 0 5px 5px 5px;
+    background-color: #fff;
+    &.active {
+      display: block;
+    }
+  }
+}

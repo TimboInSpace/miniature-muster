@@ -20,7 +20,7 @@ block content
     .tab
       h1 Step 2
       .flex-row
-        div.unitSelectionPane
+        .unitSelectionPane
           label(for="unitSelectionPlayer") Add to army:
           select(id="unitSelectionPlayer", name="unitSelectionPlayer")
             option N/A
@@ -48,13 +48,22 @@ block content
               .grid-item 0
               .grid-item 0
               .grid-item 0 / 0 / 0
-
+            .add-unit-container
+              .flex-row
+                span.subtotal-label Subtotal:
+                span.subtotal-value(id="unitSelectionSubtotal") 0 Pts
+                button(id="unitSelectionAddUnitButton", value="RECRUIT") RECRUIT
           .unit-list
             input(id="unitSelectionSearch")
             br
             select(id="unitSelectionList", name="unitSelectionList", size="10")
               option N/A
-        div.
+        .selection-display-pane.flex-col
+          .selection-display-details
+            .player-tab-control(id="unitDisplayTabControl")
+              .player-tab-labels
+              .player-tab-container
+
       .flex-row.step-buttons
         button.prev-step-button() PREVIOUS
         button.next-step-button() CONTINUE
