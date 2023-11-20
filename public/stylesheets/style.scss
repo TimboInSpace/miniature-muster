@@ -3,17 +3,38 @@ $text-main: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 $primary: blue;
 $secondary: grey;
 $highlight: #CCCCCC;
+$bg-dark: #333;
+$bg-darker: #282828;
 
+
+$font-light: #ABD2FA;
+$font-semilight: #8BC2F8;
+$font-medium: #65ADF6;
+$font-semidark: #2B8FF3;
+$font-dark: #0C70D4;
+
+.header, footer {
+  background-color: $bg-darker;
+  .logo {
+    .line1 {
+      &::first-letter {
+        font-size: 3rem;
+      }
+    }
+  }
+}
 main {
   padding: 2rem;
   font: $text-main;
-  height: calc(100vh - 6rem);
+  height: calc(100vh - 16rem);
   overflow-y: scroll;
 }
 
 body {
   padding: 0;
   margin: 0;
+  background-color: $bg-dark;
+  color: $font-medium;
 }
 
 h1 {
@@ -21,14 +42,27 @@ h1 {
   font-size: 2.5rem;
 }
 
+input, select, button {
+  color: $font-semidark;
+  background-color: transparent;
+  border: 3px solid $font-semilight;
+  border-radius: 0.5em;
+  padding: 0.5em;
+  transition: 0.3s ease-out;
+}
+label {
+  display: block;
+}
+
 a {
-  color: #00B7FF;
+  color: $font-medium;
+  text-decoration: none;
 }
 
 nav.header {
-  height: 3rem;
   text-decoration: none;
   font-size: 0.8rem;
+  padding: 0 2rem;
   ul {
     list-style-type: none;
     margin: 0;
@@ -36,28 +70,90 @@ nav.header {
     display: flex;
     flex-direction: row;
     align-items: center;
-    background-color: $secondary;
     li {
       display: inline;
-      padding: 0.75rem;
+      padding: 0.25rem;
       line-height: 1.5rem;
-      color: $primary;
       &:first-child {
         flex-grow: 1;
         font: 14px "Lato", 'Courier New', Courier, monospace;
         font-size: 2.25rem;
+        border: none;
+        letter-spacing: 0.25em;
+        text-shadow: 4px 4px 8px black;
+      }
+      &:nth-child(2) {
+        border: 3px solid;
+        border-radius: 0.25rem;
+      }
+      .line1 {
+        font-size: 1.5rem;
+        display: inline-block;
+        vertical-align: bottom;
+        position: relative;
+        bottom: -0.4rem;
+        &::first-letter {
+          font-size: 2.5rem;
+        }
+      }
+      .line2 {
+        position: relative;
+        top: -0.4rem;
+        display: inline-block;
+        font-size: 2.65rem;
+        text-transform: uppercase;
+        font-weight: lighter;
+        letter-spacing: 0.30em;
+        &::first-letter {
+          top: -0.6rem;
+          font-size: 3.0rem;
+          vertical-align: top;
+        }
       }
     }
     
   }
 }
 
+button, a:hover {
+  transition: ease-in-out 0.2s;
+  &:hover {
+    text-shadow: 0px 0px 1px whitesmoke;
+    text-decoration: underline;
+  }
+}
+
+.inline {
+  display: inline-block;
+}
+.input-group {
+  margin-right:0.75rem; 
+}
+.input-group.inline {
+  width: 45%;
+  input, select, button {
+    width: 100%;
+    text-align: right;
+  }
+}
+
 .tab-container {
+  height: calc(100vh - 16rem);
   .tab {
     display: none;
+    width: 100%;
+    max-width: 800px;
+    margin: 0px auto;
+    flex-direction: column;
+    height: 100%;
+    justify-content: stretch;
+    .tab-main {
+      flex-grow: 1;
+    }
   }
   .tab.active {
-    display: block;
+    // display: block;
+    display: flex;
   }
 }
 
@@ -65,11 +161,13 @@ nav.header {
   .button {
     flex-grow: 1;
   }
+  * {
+    margin: 0.5rem;
+  }
 }
 
 footer {
   height: 3rem;
-  background-color: $secondary;
   position: absolute;
   bottom: 0;
   width: 100%;
@@ -97,6 +195,7 @@ footer {
     
   }
   .add-unit-container {
+    align-items: center;
     .subtotal-label {
       flex-grow: 1;
       text-align: right;
@@ -104,12 +203,16 @@ footer {
     .subtotal-value {
       font-weight: bolder;
     }
+    > * {
+      margin: 0.25rem;
+    }
   }
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 3fr;
+  width: 100%;
   * {
     text-overflow: ellipsis;
     text-align: center;
@@ -119,16 +222,11 @@ footer {
   }
 }
 
-.selection-display-pane {
-  * {
-    flex-grow: 1
-  }
-}
-
 .player-tab-control{
   .player-tab-labels {
     text-decoration: none;
     border: none;
+    padding: 1rem;
     &.active {
       background-color: $highlight;
       border-left: 3px solid #888;
@@ -139,11 +237,34 @@ footer {
   .player-tab-content {
     display: none;
     padding: 20px;
-    border: 1px solid #777;
-    border-radius: 0 5px 5px 5px;
-    background-color: #fff;
+    // border: 1px solid #777;
+    // border-radius: 0 5px 5px 5px;
+    // background-color: #fff;
     &.active {
       display: block;
+    }
+  }
+}
+.unit-modifiers {
+  button {
+    width: 100%;
+  }
+}
+.two-pane {
+  flex-grow: 1;
+  >* {
+    width: 50%;
+    margin: 0.5rem 1rem;
+  }
+}
+.unit-list {
+  list-style: none;
+  padding: 0;
+  .unit-list-item {
+    .flex-row {
+      > div {
+        width: 100%;
+      }
     }
   }
 }

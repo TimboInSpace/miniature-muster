@@ -1,5 +1,23 @@
 /*
-Step 1: Defining players. 
+the state / 'data' cookie ends up holding a structure like this:
+{
+    step: 2,
+    players: ["Tim", "Brad"],
+    armies: [
+        {
+            player: "Tim"
+            units: [
+                {
+                    unit: ##unit##
+                    quantity: 3,
+                    mods: [
+                        ##MOD##
+                    ]
+                }
+            ]
+        }
+    ]
+}
 */
 
 function getCookie(name) {
@@ -63,6 +81,7 @@ function renderStep() {
                 break;
             }
             renderArmyDisplay(unitDisplayTabControl);
+
             break;
         case 3: 
             currentTab.querySelector('.next-step-button').disabled = true;
@@ -86,9 +105,10 @@ function renderArmyDisplay(ele) {
         if (army.player && army.units) {
         // Make a tab-label for each player
         // Make a tab-content for each player
-        tabLabelHTML += `<a href='#' class="player-tab-label" onclick="changePlayerTab(event,'${army.player}')">${army.player}</a>`;
+        tabLabelHTML += `<a href='#' class="player-tab-label player-tab-label-${army.player}" onclick="handlePlayerTabClick(event,'${army.player}')">${army.player}</a>`;
         let tabContentListHTML = '';
-        army.units.forEach((unit)=> {
+        let totalPoints = 0;
+        army.units.forEach((unit, idx)=> {
             // Collect the HTML for the modifiers
             let unitModsHTML = '';
             let pointCost = unit.unit.pts;
@@ -104,37 +124,30 @@ function renderArmyDisplay(ele) {
                 pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
             }
             tabContentListHTML += `
-                <li class="unit-list-item">
-                    <span>${unit.quantity}x </span>
-                    <span>${unit.unit.name} </span>
-                    <span>${pointCost} Pts</span>
-                    <div class="stats-grid">
-                        <div class="grid-header">F</div>
-                        <div class="grid-header">S</div>
-                        <div class="grid-header">D</div>
-                        <div class="grid-header">A</div>
-                        <div class="grid-header">W</div>
-                        <div class="grid-header">C</div>
-                        <div class="grid-header">M / W / F</div>
-                        <div class="grid-item">0 / -</div>
-                        <div class="grid-item">0</div>
-                        <div class="grid-item">0</div>
-                        <div class="grid-item">0</div>
-                        <div class="grid-item">0</div>
-                        <div class="grid-item">0</div>
-                        <div class="grid-item">0 / 0 / 0</div>
+                <li class="unit-list-item" unitindex="${idx}">
+                    <div class="flex-row">
+                        <div>
+                            <div class="flex-row">
+                                <span>${unit.quantity}x </span>
+                                <span style="flex-grow: 1;">${unit.unit.name} </span>
+                                <span>${pointCost} Pts</span>
+                                <button class="remove-unit-button" onclick="handleRemoveUnitButtonClick(event, '${army.player}')"> X </button>
+                            </div>
+                            ${renderStatsGrid2(unit.unit)}
+                            <div class="flex-col">${unitModsHTML}</div>
+                        </div>
                     </div>
-                    <div class="flex-col">${unitModsHTML}</div>
                 </li>
             `;
+            totalPoints += (pointCost * unit.quantity);
         });
         tabContentHTML += `
-            <div class="player-tab-content player-tab-content-${army.player}">
-                <div>
-                    <h3>${army.player}</h3>
-                    <h5>${army.units.reduce((acc,cur)=>{return acc + cur.unit.pts + cur.mods.reduce((a,c)=>{return a + c.pts},0)},0)} Pts</h5>
+            <div class="player-tab-content player-tab-content-${army.player}" style="padding: 0.5rem;">
+                <div class="flex-row">
+                    <h3 style="flex-grow: 1;">${army.player}'s Army</h3>
+                    <h3 style="flex-grow: 0;">${totalPoints} Pts</h5>
                 </div>
-                <ul>
+                <ul class="unit-list">
                     ${tabContentListHTML}
                 </ul>
             </div>
@@ -149,17 +162,34 @@ function renderArmyDisplay(ele) {
             <div class="player-tab-container">${tabContentHTML}</div>
         `;
     }
-    // //tabLabelEle.innerHTML = tabLabelHTML;
-    // tabContentEle.innerHTML = tabContentHTML;
-    // console.log(`tabLabelEle: ${tabLabelEle.innerHTML} \n ${tabLabelHTML}`);
-    // console.log(`tabContentEle: ${tabContentEle.innerHTML} \n ${tabContentHTML}`);
-    
-    // if (tabLabelEle && tabContentEle) {
-    //     tabLabelEle.innerHTML = tabLabelHTML;
-    //     tabContentEle.innerHTML = tabContentHTML;
-    // } else {
-    //     console.error(`Couldnt find player-tab-labels or player-tab-container`);
-    // }
+}
+
+function handleRemoveUnitButtonClick(event, playerName) {
+    const liEle = event.target.parentElement.parentElement.parentElement.parentElement;
+    if (!liEle) {
+        console.error('Could not find element holding unitindex for deleting this unit.');
+        return;
+    }
+    console.log(event.target);
+    const unitIdx = liEle.getAttribute('unitindex');
+    if (!unitIdx) {
+        console.error('Could not find index for unit to delete');
+        return;
+    }
+    if (!state.armies) {
+        console.error('state has no armies property. Could not delete unit');
+        return;
+    }
+    const army = state.armies.find(army => army.player === playerName);
+    if (army) {
+        // Remove the unit at the index
+        army.units.splice(unitIdx,1);
+    }
+    saveState();
+    // re-render
+    const armyDisplayEle = document.getElementById('unitDisplayTabControl');
+    renderArmyDisplay(armyDisplayEle);
+    activatePlayerTab(armyDisplayEle,army.player);
 }
 
 function getModifiersForUnit(unit) {
@@ -170,7 +200,11 @@ function getModifiersForUnit(unit) {
 }
 
 function handleModToggle(event) {
-    const btnEle = event.target.parentElement;
+    let btnEle = event.target;
+    if (event.target.tagName !== "BUTTON") {
+        event.stopPropagation();
+        btnEle = event.target.parentElement;
+    }
     const checkboxEle = btnEle.querySelector('input[type="checkbox"]');
     const oldState = checkboxEle.checked;
     checkboxEle.checked = !oldState;
@@ -208,6 +242,7 @@ function updateShownScore() {
 }
 
 function renderSelectedUnitDetails(tgt) {
+    // tgt is the <select> element that becomes the unit selection list
     const eleName = document.getElementById('unitSelectionUnitName');
     const elePts = document.getElementById('unitSelectionUnitPts');
     const eleMods = eleName.parentElement.parentElement.querySelector('.unit-modifiers');
@@ -228,7 +263,7 @@ function renderSelectedUnitDetails(tgt) {
     mods.forEach( mod => {
         modsHTML += `
             <button class="mod-details" key="${mod.modifierID}" onclick="handleModToggle(event)">
-                <input type="checkbox" class="" disabled />
+                <input type="checkbox" class="" onclick="handleModToggle(event)" disabled />
                 <span>${mod.name}</span>
                 <span> ${mod.pts} Pts</span>
             </button>
@@ -243,6 +278,7 @@ function renderSelectedUnitDetails(tgt) {
 }
 
 function renderStatsGrid(statsGridEle, stats) {
+    // Update an existing stats grid
     const gridItems = statsGridEle.children;
     if (gridItems.length != 14) { console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); return;}
     gridItems[7].innerHTML = stats.ranged > 0 ? `${stats.melee} / ${stats.ranged}+` : `${stats.melee} / -`;
@@ -252,6 +288,27 @@ function renderStatsGrid(statsGridEle, stats) {
     gridItems[11].innerHTML = `${stats.wounds}`;
     gridItems[12].innerHTML = `${stats.courage}`;
     gridItems[13].innerHTML = `${stats.might} / ${stats.will} / ${stats.fate}`;
+}
+
+function renderStatsGrid2(stats) {
+   return `
+    <div class="stats-grid">
+        <div class="grid-header">F</div>
+        <div class="grid-header">S</div>
+        <div class="grid-header">D</div>
+        <div class="grid-header">A</div>
+        <div class="grid-header">W</div>
+        <div class="grid-header">C</div>
+        <div class="grid-header">M / W / F</div>
+        <div class="grid-item">${stats.ranged > 0 ? stats.melee+" / "+stats.ranged+"+" : " "+stats.melee+" / -"}</div>
+        <div class="grid-item">${stats.strength}</div>
+        <div class="grid-item">${stats.defence}</div>
+        <div class="grid-item">${stats.attack}</div>
+        <div class="grid-item">${stats.wounds}</div>
+        <div class="grid-item">${stats.courage}</div>
+        <div class="grid-item">${stats.might} / ${stats.will} / ${stats.fate}</div>
+    </div>
+   `;
 }
 
 function renderSelectionList(selectionEle, arrKeys, arrValues, showNum = 1) {
@@ -282,18 +339,22 @@ function showCurrentTab() {
     tabs[state.step-1].classList.add('active');
 } 
 
-function changePlayerTab(event, playerName) {
+function handlePlayerTabClick(event, playerName) {
+    const tabControl = event.target.parentElement.parentElement;
+    activatePlayerTab(tabControl, playerName);
+}
+
+function activatePlayerTab(eleTabControl, player) {
     // Remove .active from all player tabs
     // Add .active to the player's tab It is the one with class player-tab-content-NAME
-    const allTabs = event.target.parentElement.querySelectorAll(`.player-tab-content`);
-    allTabs.forEach(tab => {
-        console.log('removing active from tab: '+tab.outerHTML);
-        tab.classList.remove('active');
-        if (tab.classList.includes(`player-tab-content-${playerName}`)) {
-            tab.classList.add('active');
-        }
-    });
-    
+    const allTabs = eleTabControl.querySelectorAll(`.player-tab-content`);
+    allTabs.forEach(tab => { tab.classList.remove('active'); });
+    const tabToActivate = eleTabControl.querySelector(`.player-tab-content-${player}`);
+    tabToActivate.classList.add('active');
+    const allLabels = eleTabControl.querySelectorAll('.player-tab-label');
+    allLabels.forEach(lbl => { lbl.classList.remove('active'); });
+    const lblToActivate = eleTabControl.querySelector(`.player-tab-label-${player}`);
+    lblToActivate.classList.add('active');
 }
 
 
@@ -355,9 +416,8 @@ function establishCallbacks() {
             if (typeof x !== 'number') {return false}
             return x > 0 && Number.isInteger(x);
         }
-        console.log(displayState);
-        if (displayState.hasOwnProperty('unitSelectionSelectedUnit') && displayState.unitSelectionSelectedUnit
-            && displayState.selectionQuantity && isPositiveWholeNumber(parseInt(displayState.selectionQuantity))) {
+        // Fix deletion bug
+        if (displayState.hasOwnProperty('unitSelectionSelectedUnit') && displayState.unitSelectionSelectedUnit && displayState.selectionQuantity && isPositiveWholeNumber(parseInt(displayState.selectionQuantity))) {
             // Add the selected unit to the data/cookie, and refresh the page
             if (!state.hasOwnProperty('armies')) {
                 state.armies = [];
@@ -370,7 +430,7 @@ function establishCallbacks() {
             if (!playerArmy) {
                 playerArmy = {
                     player: playerName,
-                    units: []
+                    units: [] // an array of {unit, mods[], quantity}
                 };
                 state.armies.push(playerArmy);
             }
@@ -383,6 +443,7 @@ function establishCallbacks() {
             saveState();
             const armyDisplayEle = document.getElementById('unitDisplayTabControl');
             renderArmyDisplay(armyDisplayEle);
+            activatePlayerTab(armyDisplayEle,playerArmy.player);
         }
     });
 }

@@ -8,67 +8,75 @@ block content
     var unitswithmodifiers = !{JSON.stringify(allunitswithmodifiers)};
   .tab-container
     .tab.active
-      p Welcome to #{title}
-      p Please define players 
-      form(id="playerNameForm" action="")
-        input(id="playerNameInput" type="text", placeholder="Player name")
-        input(type="submit" value="ADD")
-      ol#players-list
-      .flex-row.step-buttons
-        button.prev-step-button() PREVIOUS
-        button.next-step-button() CONTINUE
+      .tab-headers
+        p Welcome to #{title}
+        p Please define players 
+      .tab-main
+        form(id="playerNameForm" action="")
+          input(id="playerNameInput" type="text", placeholder="Player name")
+          input(type="submit" value="ADD")
+        ol#players-list
+      .tab-footers
+        .flex-row.step-buttons
+          button.prev-step-button() PREVIOUS
+          button.next-step-button() CONTINUE
     .tab
-      h1 Step 2
-      .flex-row
-        .unitSelectionPane
-          label(for="unitSelectionPlayer") Add to army:
-          select(id="unitSelectionPlayer", name="unitSelectionPlayer")
-            option N/A
-          br
-          label(for="unitSelectionQty") Quantity:
-          input(id="unitSelectionQty", type="number", name="unitSelectionQty", min="1", value="1")
-          .unit-details
-            .unit-header.flex-row
-              span(id="unitSelectionUnitName") Unitname Namedness
-              span(id="unitSelectionUnitPts") 215 Pts
-            .unit-modifiers
-              p No modifiers available.
-            .stats-grid
-              .grid-header F 
-              .grid-header S
-              .grid-header D 
-              .grid-header A
-              .grid-header W 
-              .grid-header C
-              .grid-header M / W / F
-              .grid-item 0/-
-              .grid-item 0
-              .grid-item 0
-              .grid-item 0
-              .grid-item 0
-              .grid-item 0
-              .grid-item 0 / 0 / 0
-            .add-unit-container
-              .flex-row
-                span.subtotal-label Subtotal:
-                span.subtotal-value(id="unitSelectionSubtotal") 0 Pts
-                button(id="unitSelectionAddUnitButton", value="RECRUIT") RECRUIT
-          .unit-list
-            input(id="unitSelectionSearch")
-            br
-            select(id="unitSelectionList", name="unitSelectionList", size="10")
-              option N/A
-        .selection-display-pane.flex-col
-          .selection-display-details
-            .player-tab-control(id="unitDisplayTabControl")
-              .player-tab-labels
-              .player-tab-container
-
-      .flex-row.step-buttons
-        button.prev-step-button() PREVIOUS
-        button.next-step-button() CONTINUE
+      .tab-headers
+        h1 Step 2
+      .tab-main
+        .flex-row.two-pane
+          .unitSelectionPane
+            .input-group.inline
+              label(for="unitSelectionPlayer") Add to army:
+              select(id="unitSelectionPlayer", name="unitSelectionPlayer")
+                option N/A
+            .input-group.inline
+              label(for="unitSelectionQty") Quantity:
+              input(id="unitSelectionQty", type="number", name="unitSelectionQty", min="1", value="1")
+            .unit-details
+              .unit-header.flex-row
+                span(id="unitSelectionUnitName") Unitname Namedness
+                span(id="unitSelectionUnitPts") 215 Pts
+              .stats-grid
+                .grid-header F 
+                .grid-header S
+                .grid-header D 
+                .grid-header A
+                .grid-header W 
+                .grid-header C
+                .grid-header M / W / F
+                .grid-item 0/-
+                .grid-item 0
+                .grid-item 0
+                .grid-item 0
+                .grid-item 0
+                .grid-item 0
+                .grid-item 0 / 0 / 0
+              .unit-modifiers
+                p No modifiers available.
+              .add-unit-container.flex-row(style="align-items: center;")
+                  span.subtotal-label Subtotal:
+                  span.subtotal-value(id="unitSelectionSubtotal") 0 Pts
+                  button(id="unitSelectionAddUnitButton", value="RECRUIT") RECRUIT
+            .unit-list
+              input(id="unitSelectionSearch")
+              br
+              select(id="unitSelectionList", name="unitSelectionList", size="10")
+                option N/A
+          .selection-display-pane.flex-col
+            .selection-display-details
+              .player-tab-control(id="unitDisplayTabControl")
+                .player-tab-labels
+                .player-tab-container
+      .tab-footers
+        .flex-row.step-buttons
+          button.prev-step-button() PREVIOUS
+          button.next-step-button() CONTINUE
     .tab
-      h1 Step 3
-      .flex-row.step-buttons
-        button.prev-step-button() PREVIOUS
-        button.next-step-button() CONTINUE
+      .tab-headers
+        h1 Step 3
+      .tab-main
+      .tab-footers
+        .flex-row.step-buttons
+          button.prev-step-button() PREVIOUS
+          button.next-step-button() CONTINUE
