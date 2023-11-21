@@ -41,44 +41,46 @@ function renderWoundChart(str = 0, def = 0) {
         return 'INVALID WOUND CHART';
     }
     function getWoundVal(s,d) {
-        return woundData(s-1, d-1);
+        return woundData[s-1][d-1];
     }
     let woundChartHTML = '';
     for (let s = 1; s <= woundData.length; s++) {
         for (let d = 1; d <= woundData[0].length; d++) {
+            const r = 2 + s;
+            const c = 2 + d;
+            const active = (s === str || d === def) ? 'active' : '';
+            const intersection = (s === str && d === def) ? 'intersection' : '';
             woundChartHTML += `
-                <div class="wound-val">
-
+                <div class="wound-val roll-val roll-${s}-${d} ${active} ${intersection}" style="grid-area: ${r} / ${c} / ${r} / ${c}">
+                 ${getWoundVal(s,d)}
                 </div>
             `;
         }
     }
     return `
-        <div class="wound-chart">
-            <div class="col-label" style="grid-area: cols-label">Defence</div>
-            <div class="row-label" style="grid-area: rows-label">Strength</div>
-            <div class="num-label" style="grid-area: num">1</div>
-            <div class="num-label" style="grid-area: num">2</div>
-            <div class="num-label" style="grid-area: num">3</div>
-            <div class="num-label" style="grid-area: num">4</div>
-            <div class="num-label" style="grid-area: num">5</div>
-            <div class="num-label" style="grid-area: num">6</div>
-            <div class="num-label" style="grid-area: num">7</div>
-            <div class="num-label" style="grid-area: num">8</div>
-            <div class="num-label" style="grid-area: num">9</div>
-            <div class="num-label" style="grid-area: num">10</div>
-            <div class="num-label" style="grid-area: num">1</div>
-            <div class="num-label" style="grid-area: num">2</div>
-            <div class="num-label" style="grid-area: num">3</div>
-            <div class="num-label" style="grid-area: num">4</div>
-            <div class="num-label" style="grid-area: num">5</div>
-            <div class="num-label" style="grid-area: num">6</div>
-            <div class="num-label" style="grid-area: num">7</div>
-            <div class="num-label" style="grid-area: num">8</div>
-            <div class="num-label" style="grid-area: num">9</div>
-            <div class="num-label" style="grid-area: num">10</div>
+            <div class="col-label" style="text-align: center; grid-area: 1 / 3 / 1 / 12">Defence</div>
+            <div class="row-label" style="transform: rotate(270deg); transform-origin: 120% 15%; grid-area: 3 / 1 / 12 / 1">Strength</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 3 / 2 / 3">1</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 4 / 2 / 4">2</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 5 / 2 / 5">3</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 6 / 2 / 6">4</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 7 / 2 / 7">5</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 8 / 2 / 8">6</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 9 / 2 / 9">7</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 10 / 2 / 10">8</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 11 / 2 / 11">9</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 12 / 2 / 12">10</div>
+            <div class="num-label row-num-label" style="grid-area: 3 / 2 / 3 / 2">1</div>
+            <div class="num-label row-num-label" style="grid-area: 4 / 2 / 4 / 2">2</div>
+            <div class="num-label row-num-label" style="grid-area: 5 / 2 / 5 / 2">3</div>
+            <div class="num-label row-num-label" style="grid-area: 6 / 2 / 6 / 2">4</div>
+            <div class="num-label row-num-label" style="grid-area: 7 / 2 / 7 / 2">5</div>
+            <div class="num-label row-num-label" style="grid-area: 8 / 2 / 8 / 2">6</div>
+            <div class="num-label row-num-label" style="grid-area: 9 / 2 / 9 / 2">7</div>
+            <div class="num-label row-num-label" style="grid-area: 10 / 2 / 10 / 2">8</div>
+            <div class="num-label row-num-label" style="grid-area: 11 / 2 / 11 / 2">9</div>
+            <div class="num-label row-num-label" style="grid-area: 12 / 2 / 12 / 2">10</div>
             ${woundChartHTML}
-        </div>
     `;
 }
 
@@ -150,9 +152,12 @@ function renderStep() {
             const panes = currentTab.querySelectorAll('.unit-compare-pane');
             panes.forEach( elePane => {
                 const tabCtl = elePane.querySelector('.player-tab-control');
-                console.log(`Found this tab control: ${tabCtl}`);
                 renderArmyComparisonList(tabCtl);
             });
+            const woundDiv = document.querySelector('.wound-chart');
+            if (woundDiv) {
+                woundDiv.innerHTML = renderWoundChart(5,7);
+            }
             break;
         default:
             break;
@@ -294,7 +299,6 @@ function renderArmyComparisonList(ele) {
         `;
         }
     });
-    console.log(ele);
     ele.innerHTML = `
         <div class="player-tab-labels">${tabLabelHTML}</div>
         <div class="player-tab-container">${tabContentHTML}</div>

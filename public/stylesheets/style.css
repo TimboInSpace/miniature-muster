@@ -348,9 +348,33 @@ footer {
 .unit-compare-details .unit-compare-list-container .unit-compare-outcomes .unit-compare-pane .unit-compare-outcomes {
   border-top: 1px solid #65ADF6;
 }
+
 .wound-chart {
   display: grid;
-  grid-template-areas: "empty empty cols-label cols-label cols-label cols-label cols-label cols-label cols-label cols-label cols-label cols-label" "empty empty num num num num num num num num num num" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound" "rows-label num wound wound wound wound wound wound wound wound wound wound";
+  grid-template-columns: "40px auto auto auto auto auto auto auto auto auto auto auto";
+  padding: 0.5rem;
+  margin-left: -4em;
+  text-align: center;
+}
+.wound-chart .col-label, .wound-chart .row-label {
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  margin-right: 0.25rem;
+}
+.wound-chart .wound-val {
+  padding: 0.15em 0.25em;
+}
+.wound-chart .num-label {
+  font-weight: bolder;
+}
+.wound-chart .active {
+  font-weight: bold;
+  text-shadow: 0 0 2px #ABD2FA;
+}
+.wound-chart .intersection {
+  border: 1px solid;
+  border-radius: 99px;
+  box-shadow: 0px 0px 1em #ABD2FA;
 }
 
 /*# sourceMappingURL=style.css.map */

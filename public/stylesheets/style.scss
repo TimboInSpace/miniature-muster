@@ -385,24 +385,39 @@ footer {
   }
   .unit-compare-outcomes {
     border-top: 1px solid $font-medium;
-    .wound-chart {
-
-    }
   }
 }
 
 .wound-chart {
   display: grid;
-  grid-template-areas: 'empty empty cols-label cols-label cols-label cols-label cols-label cols-label cols-label cols-label cols-label cols-label'
-    'empty empty num num num num num num num num num num'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound'
-    'rows-label num wound wound wound wound wound wound wound wound wound wound';
+  grid-template-columns: '40px auto auto auto auto auto auto auto auto auto auto auto';
+  padding: 0.5rem;
+  margin-left: -4em;
+  text-align: center;
+  .col-label, .row-label {
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    margin-right: 0.25rem;
+  }
+  .col-num-label {
+    // border-bottom: 1px solid;
+  }
+  .row-num-label {
+    // border-right: 1px solid;
+  }
+  .wound-val {
+    padding: 0.15em 0.25em;
+  }
+  .num-label {
+    font-weight: bolder;
+  }
+  .active {
+    font-weight: bold;
+    text-shadow: 0 0 2px $font-light;
+  }
+  .intersection {
+    border: 1px solid;
+    border-radius: 99px;
+    box-shadow: 0px 0px 1em $font-light;
+  }
 }
