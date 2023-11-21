@@ -19,6 +19,68 @@ the state / 'data' cookie ends up holding a structure like this:
     ]
 }
 */
+// Ex. requiredRollForWound = woundData[strength][defence];
+var woundData = [
+    //1    2    3    4    5    6      7      8      9      10
+    ['4', '5', '5', '6', '6', '6/4', '6/5', '6/6', '-',   '-'  ],       // 1
+    ['4', '4', '5', '5', '6', '6',   '6/4', '6/5', '6/6', '-'  ],       // 2
+    ['3', '4', '4', '5', '5', '6',   '6',   '6/4', '6/5', '6/6'],       // 3
+    ['3', '3', '4', '4', '5', '5',   '6',   '6',   '6/4', '6/5'],       // 4
+    ['3', '3', '3', '4', '4', '5',   '5',   '6',   '6',   '6/5'],       // 5
+    ['3', '3', '3', '3', '4', '4',   '5',   '5',   '6',   '6'  ],       // 6
+    ['3', '3', '3', '3', '3', '4',   '4',   '5',   '5',   '6'  ],       // 7
+    ['3', '3', '3', '3', '3', '3',   '4',   '4',   '5',   '5'  ],       // 8
+    ['3', '3', '3', '3', '3', '3',   '3',   '4',   '4',   '5'  ],       // 9
+    ['3', '3', '3', '3', '3', '3',   '3',   '3',   '4',   '4'  ],       // 10
+]
+
+function renderWoundChart(str = 0, def = 0) {
+    
+    if (woundData.length < 10 || woundData[0].length < 10) {
+        console.error('Invalid wound chart was provided');
+        return 'INVALID WOUND CHART';
+    }
+    function getWoundVal(s,d) {
+        return woundData(s-1, d-1);
+    }
+    let woundChartHTML = '';
+    for (let s = 1; s <= woundData.length; s++) {
+        for (let d = 1; d <= woundData[0].length; d++) {
+            woundChartHTML += `
+                <div class="wound-val">
+
+                </div>
+            `;
+        }
+    }
+    return `
+        <div class="wound-chart">
+            <div class="col-label" style="grid-area: cols-label">Defence</div>
+            <div class="row-label" style="grid-area: rows-label">Strength</div>
+            <div class="num-label" style="grid-area: num">1</div>
+            <div class="num-label" style="grid-area: num">2</div>
+            <div class="num-label" style="grid-area: num">3</div>
+            <div class="num-label" style="grid-area: num">4</div>
+            <div class="num-label" style="grid-area: num">5</div>
+            <div class="num-label" style="grid-area: num">6</div>
+            <div class="num-label" style="grid-area: num">7</div>
+            <div class="num-label" style="grid-area: num">8</div>
+            <div class="num-label" style="grid-area: num">9</div>
+            <div class="num-label" style="grid-area: num">10</div>
+            <div class="num-label" style="grid-area: num">1</div>
+            <div class="num-label" style="grid-area: num">2</div>
+            <div class="num-label" style="grid-area: num">3</div>
+            <div class="num-label" style="grid-area: num">4</div>
+            <div class="num-label" style="grid-area: num">5</div>
+            <div class="num-label" style="grid-area: num">6</div>
+            <div class="num-label" style="grid-area: num">7</div>
+            <div class="num-label" style="grid-area: num">8</div>
+            <div class="num-label" style="grid-area: num">9</div>
+            <div class="num-label" style="grid-area: num">10</div>
+            ${woundChartHTML}
+        </div>
+    `;
+}
 
 function getCookie(name) {
     var cookieValue = "";
@@ -85,6 +147,12 @@ function renderStep() {
             break;
         case 3: 
             currentTab.querySelector('.next-step-button').disabled = true;
+            const panes = currentTab.querySelectorAll('.unit-compare-pane');
+            panes.forEach( elePane => {
+                const tabCtl = elePane.querySelector('.player-tab-control');
+                console.log(`Found this tab control: ${tabCtl}`);
+                renderArmyComparisonList(tabCtl);
+            });
             break;
         default:
             break;
@@ -116,8 +184,8 @@ function renderArmyDisplay(ele) {
                 unit.mods.forEach(mod => {
                     unitModsHTML += `
                         <div class="unit-mod-display">
-                            <span>${mod.name} (+${mod.pts})</span><br>
-                            <span>${mod.details}</span>
+                            <span>${mod.name} (+${mod.pts})</span>
+                            <span><em>${mod.details}</em></span>
                         </div>
                     `;
                 });
@@ -127,9 +195,9 @@ function renderArmyDisplay(ele) {
                 <li class="unit-list-item" unitindex="${idx}">
                     <div class="flex-row">
                         <div>
-                            <div class="flex-row">
+                            <div class="flex-row unit-list-item-header">
                                 <span>${unit.quantity}x </span>
-                                <span style="flex-grow: 1;">${unit.unit.name} </span>
+                                <span style="flex-grow: 1;"><b>${unit.unit.name}</b></span>
                                 <span>${pointCost} Pts</span>
                                 <button class="remove-unit-button" onclick="handleRemoveUnitButtonClick(event, '${army.player}')"> X </button>
                             </div>
@@ -162,6 +230,75 @@ function renderArmyDisplay(ele) {
             <div class="player-tab-container">${tabContentHTML}</div>
         `;
     }
+}
+
+// Make a tab-control with a tab for each player, to display the army
+// ele is the div that contains the tab-labels and the tab-container.
+// each page is a tab-content
+function renderArmyComparisonList(ele) {
+    if (!state.hasOwnProperty('armies')) {
+        ele.innerHTML = '';
+        return;
+    }
+    let tabLabelHTML = '';
+    let tabContentHTML = '';
+    state.armies.forEach((army) => {
+        if (army.player && army.units) {
+        // Make a tab-label for each player
+        // Make a tab-content for each player
+        tabLabelHTML += `<a href='#' class="player-tab-label player-tab-label-${army.player}" onclick="handlePlayerTabClick(event,'${army.player}')">${army.player}</a>`;
+        let tabContentListHTML = '';
+        let totalPoints = 0;
+        army.units.forEach((unit, idx)=> {
+            // Collect the HTML for the modifiers
+            let unitModsHTML = '';
+            let pointCost = unit.unit.pts;
+            if (unit.mods) {
+                unit.mods.forEach(mod => {
+                    unitModsHTML += `
+                        <div class="unit-mod-display">
+                            <span>${mod.name} (+${mod.pts})</span>
+                            <span><em>${mod.details}</em></span>
+                        </div>
+                    `;
+                });
+                pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
+            }
+            tabContentListHTML += `
+                <li class="unit-list-item" unitindex="${idx}">
+                    <div class="flex-row">
+                        <div>
+                            <div class="flex-row unit-list-item-header">
+                                <span>${unit.quantity}x </span>
+                                <span style="flex-grow: 1;"><b>${unit.unit.name}</b></span>
+                                <span>${pointCost} Pts</span>
+                            </div>
+                            ${renderStatsGrid2(unit.unit)}
+                            <div class="flex-col">${unitModsHTML}</div>
+                        </div>
+                    </div>
+                </li>
+            `;
+            totalPoints += (pointCost * unit.quantity);
+        });
+        tabContentHTML += `
+            <div class="player-tab-content player-tab-content-${army.player}" style="padding: 0.5rem;">
+                <div class="flex-row">
+                    <h3 style="flex-grow: 1;">${army.player}'s Army</h3>
+                    <h3 style="flex-grow: 0;">${totalPoints} Pts</h5>
+                </div>
+                <ul class="unit-list">
+                    ${tabContentListHTML}
+                </ul>
+            </div>
+        `;
+        }
+    });
+    console.log(ele);
+    ele.innerHTML = `
+        <div class="player-tab-labels">${tabLabelHTML}</div>
+        <div class="player-tab-container">${tabContentHTML}</div>
+    `;
 }
 
 function handleRemoveUnitButtonClick(event, playerName) {
