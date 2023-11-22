@@ -34,56 +34,6 @@ var woundData = [
     ['3', '3', '3', '3', '3', '3',   '3',   '3',   '4',   '4'  ],       // 10
 ]
 
-function renderWoundChart(str = 0, def = 0) {
-    
-    if (woundData.length < 10 || woundData[0].length < 10) {
-        console.error('Invalid wound chart was provided');
-        return 'INVALID WOUND CHART';
-    }
-    function getWoundVal(s,d) {
-        return woundData[s-1][d-1];
-    }
-    let woundChartHTML = '';
-    for (let s = 1; s <= woundData.length; s++) {
-        for (let d = 1; d <= woundData[0].length; d++) {
-            const r = 2 + s;
-            const c = 2 + d;
-            const active = (s === str || d === def) ? 'active' : '';
-            const intersection = (s === str && d === def) ? 'intersection' : '';
-            woundChartHTML += `
-                <div class="wound-val roll-val roll-${s}-${d} ${active} ${intersection}" style="grid-area: ${r} / ${c} / ${r} / ${c}">
-                 ${getWoundVal(s,d)}
-                </div>
-            `;
-        }
-    }
-    return `
-            <div class="col-label" style="text-align: center; grid-area: 1 / 3 / 1 / 12">Defence</div>
-            <div class="row-label" style="transform: rotate(270deg); transform-origin: 120% 15%; grid-area: 3 / 1 / 12 / 1">Strength</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 3 / 2 / 3">1</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 4 / 2 / 4">2</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 5 / 2 / 5">3</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 6 / 2 / 6">4</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 7 / 2 / 7">5</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 8 / 2 / 8">6</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 9 / 2 / 9">7</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 10 / 2 / 10">8</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 11 / 2 / 11">9</div>
-            <div class="num-label col-num-label" style="grid-area: 2 / 12 / 2 / 12">10</div>
-            <div class="num-label row-num-label" style="grid-area: 3 / 2 / 3 / 2">1</div>
-            <div class="num-label row-num-label" style="grid-area: 4 / 2 / 4 / 2">2</div>
-            <div class="num-label row-num-label" style="grid-area: 5 / 2 / 5 / 2">3</div>
-            <div class="num-label row-num-label" style="grid-area: 6 / 2 / 6 / 2">4</div>
-            <div class="num-label row-num-label" style="grid-area: 7 / 2 / 7 / 2">5</div>
-            <div class="num-label row-num-label" style="grid-area: 8 / 2 / 8 / 2">6</div>
-            <div class="num-label row-num-label" style="grid-area: 9 / 2 / 9 / 2">7</div>
-            <div class="num-label row-num-label" style="grid-area: 10 / 2 / 10 / 2">8</div>
-            <div class="num-label row-num-label" style="grid-area: 11 / 2 / 11 / 2">9</div>
-            <div class="num-label row-num-label" style="grid-area: 12 / 2 / 12 / 2">10</div>
-            ${woundChartHTML}
-    `;
-}
-
 function getCookie(name) {
     var cookieValue = "";
     var cookies = document.cookie.split(';');
@@ -102,6 +52,19 @@ function setCookie(cookieName, cookieValue, expirationDays = 5) {
     date.setTime(date.getTime() + (expirationDays * 24 * 60 * 60 * 1000));
     const expires = "expires=" + date.toUTCString();
     document.cookie = cookieName + "=" + cookieValue + ";" + expires + ";path=/;SameSite=Strict";
+}
+
+function findParent(ele, selector) {
+    // Recursively search for a parent element that matches the given CSS selector
+    const curEle = ele;
+    if (ele.matches(selector)) { return curEle }
+    else {
+        if (!ele.parentElement) {
+            return null;
+        } else {
+            return findParent(ele.parentElement, selector);
+        }
+    }
 }
 
 function renderStep() {
@@ -259,20 +222,18 @@ function renderArmyComparisonList(ele) {
             let unitModsHTML = '';
             let pointCost = unit.unit.pts;
             if (unit.mods) {
-                unit.mods.forEach(mod => {
-                    unitModsHTML += `
-                        <div class="unit-mod-display">
-                            <span>${mod.name} (+${mod.pts})</span>
-                            <span><em>${mod.details}</em></span>
-                        </div>
-                    `;
-                });
+                // unit.mods.forEach(mod => {
+                //     unitModsHTML += `
+                //         <div class="unit-mod-display">
+                //             <span>${mod.name} (+${mod.pts})</span>
+                //             <span><em>${mod.details}</em></span>
+                //         </div>
+                //     `;
+                // });
                 pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
             }
-            tabContentListHTML += `
-                <li class="unit-list-item" unitindex="${idx}">
-                    <div class="flex-row">
-                        <div>
+            /* Was uising this earler
+                                    <div>
                             <div class="flex-row unit-list-item-header">
                                 <span>${unit.quantity}x </span>
                                 <span style="flex-grow: 1;"><b>${unit.unit.name}</b></span>
@@ -281,7 +242,16 @@ function renderArmyComparisonList(ele) {
                             ${renderStatsGrid2(unit.unit)}
                             <div class="flex-col">${unitModsHTML}</div>
                         </div>
+            */
+            tabContentListHTML += `
+                <li class="unit-list-item" unitindex="${idx}" onclick="handleUnitComparisonListClick(event,${idx},'${army.player}')">
+                    <div class=flex-row">
+                        <span class="unit-list-item-header" style="width: 10em; text-overflow: ellipsis;"><b>${unit.unit.name}</b></span>
+                        <div class="stats-grid-container inline">
+                            ${renderStatsGrid2(unit.unit, true)}
+                        </div>
                     </div>
+                    <div class="flex-col">${unitModsHTML}</div>
                 </li>
             `;
             totalPoints += (pointCost * unit.quantity);
@@ -292,6 +262,21 @@ function renderArmyComparisonList(ele) {
                     <h3 style="flex-grow: 1;">${army.player}'s Army</h3>
                     <h3 style="flex-grow: 0;">${totalPoints} Pts</h5>
                 </div>
+                
+                <div class="flex-row" style="padding: 0.5rem">
+                    <span style="width: 10em; margin-left: 0.5rem;"></span>
+                    <div class="stats-grid">
+                        <div class="grid-header">F</div>
+                        <div class="grid-header">S</div>
+                        <div class="grid-header">D</div>
+                        <div class="grid-header">A</div>
+                        <div class="grid-header">W</div>
+                        <div class="grid-header">C</div>
+                        <div class="grid-header">M / W / F</div>
+                    </div>
+                </div>
+                
+    
                 <ul class="unit-list">
                     ${tabContentListHTML}
                 </ul>
@@ -302,6 +287,113 @@ function renderArmyComparisonList(ele) {
     ele.innerHTML = `
         <div class="player-tab-labels">${tabLabelHTML}</div>
         <div class="player-tab-container">${tabContentHTML}</div>
+    `;
+}
+
+function handleUnitComparisonListClick(event,idx,player) {
+    // TODO: Swap this out for a lookup of the unit ID from the Units array
+    const unit = state.armies.find(a => a.player === player)?.units[idx];
+    // Get a reference to the container holding all the controls that display details on the unit
+    const unitComparePane = findParent(event.target, '.unit-compare-pane');
+    // Highlight the clicked item
+    const unitCompareList = findParent(event.target, '.unit-list');
+    if (unitCompareList) {
+        Array.from(unitCompareList.children).forEach( li => {
+            li.classList.remove('active');
+        });
+        try {
+            unitCompareList.children[idx].classList.add('active');
+        }
+        catch {
+            console.error(`Attempted to highlight nonexistent child item of unit-list in Step 3: (index: ${idx})`);
+        }
+
+    }
+    const unitCompareDetails = unitComparePane.querySelector('.unit-compare-details');
+    if (unitCompareDetails) {
+        const statsGrid = unitCompareDetails.querySelector('.stats-grid');
+        const totalStats = statsWithMods(unit);
+        if (statsGrid) {
+            statsGrid.outerHTML = renderStatsGrid2(totalStats);
+        }
+        const unitHeader = unitCompareDetails.querySelector('.unit-header');
+        if (unitHeader && unitHeader.children.length >= 2) {
+            unitHeader.children[0].innerHTML = totalStats.name;
+            unitHeader.children[1].innerHTML = `${totalStats.pts} Pts`;
+        }
+        const unitMods = unitCompareDetails.querySelector('.unit-modifiers');
+        if (unitMods) {
+            unitMods.innerHTML = unit.mods.reduce( (acc, mod) => {
+                const html = `
+                <div class="unit-mod-display">
+                    <span>${mod.name} (+${mod.pts})</span>
+                    <span><em>${mod.details}</em></span>
+                </div>
+                `;
+                return acc + html
+            }, '');
+        }
+    }    
+}
+
+function statsWithMods(unit) {
+    // TODO: Look up each mod by a modifierID instead of the mod itself by doing a .map() call
+    // Then sum up each stat using a .reduce() call
+    const statsObj = {name: unit.unit.name};
+    const vars = ['melee', 'ranged', 'strength', 'defence', 'attack', 'wounds', 'courage', 'might', 'will', 'fate', 'pts'];
+    vars.forEach( stat => {
+        statsObj[stat] = unit.unit[stat] + unit.mods.reduce((acc,cur)=>{return acc + cur[stat]},0);
+    });
+    return statsObj;
+}
+
+function renderWoundChart(str = 0, def = 0) {
+    
+    if (woundData.length < 10 || woundData[0].length < 10) {
+        console.error('Invalid wound chart was provided');
+        return 'INVALID WOUND CHART';
+    }
+    function getWoundVal(s,d) {
+        return woundData[s-1][d-1];
+    }
+    let woundChartHTML = '';
+    for (let s = 1; s <= woundData.length; s++) {
+        for (let d = 1; d <= woundData[0].length; d++) {
+            const r = 2 + s;
+            const c = 2 + d;
+            const active = (s === str || d === def) ? 'active' : '';
+            const intersection = (s === str && d === def) ? 'intersection' : '';
+            woundChartHTML += `
+                <div class="wound-val roll-val roll-${s}-${d} ${active} ${intersection}" style="grid-area: ${r} / ${c} / ${r} / ${c}">
+                 ${getWoundVal(s,d)}
+                </div>
+            `;
+        }
+    }
+    return `
+            <div class="col-label" style="text-align: center; grid-area: 1 / 3 / 1 / 12">Defence</div>
+            <div class="row-label" style="transform: rotate(270deg); transform-origin: 120% 15%; grid-area: 3 / 1 / 12 / 1">Strength</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 3 / 2 / 3">1</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 4 / 2 / 4">2</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 5 / 2 / 5">3</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 6 / 2 / 6">4</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 7 / 2 / 7">5</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 8 / 2 / 8">6</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 9 / 2 / 9">7</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 10 / 2 / 10">8</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 11 / 2 / 11">9</div>
+            <div class="num-label col-num-label" style="grid-area: 2 / 12 / 2 / 12">10</div>
+            <div class="num-label row-num-label" style="grid-area: 3 / 2 / 3 / 2">1</div>
+            <div class="num-label row-num-label" style="grid-area: 4 / 2 / 4 / 2">2</div>
+            <div class="num-label row-num-label" style="grid-area: 5 / 2 / 5 / 2">3</div>
+            <div class="num-label row-num-label" style="grid-area: 6 / 2 / 6 / 2">4</div>
+            <div class="num-label row-num-label" style="grid-area: 7 / 2 / 7 / 2">5</div>
+            <div class="num-label row-num-label" style="grid-area: 8 / 2 / 8 / 2">6</div>
+            <div class="num-label row-num-label" style="grid-area: 9 / 2 / 9 / 2">7</div>
+            <div class="num-label row-num-label" style="grid-area: 10 / 2 / 10 / 2">8</div>
+            <div class="num-label row-num-label" style="grid-area: 11 / 2 / 11 / 2">9</div>
+            <div class="num-label row-num-label" style="grid-area: 12 / 2 / 12 / 2">10</div>
+            ${woundChartHTML}
     `;
 }
 
@@ -431,9 +523,8 @@ function renderStatsGrid(statsGridEle, stats) {
     gridItems[13].innerHTML = `${stats.might} / ${stats.will} / ${stats.fate}`;
 }
 
-function renderStatsGrid2(stats) {
-   return `
-    <div class="stats-grid">
+function renderStatsGrid2(stats, minimal = false) {
+    const header = minimal ? '' : `
         <div class="grid-header">F</div>
         <div class="grid-header">S</div>
         <div class="grid-header">D</div>
@@ -441,6 +532,10 @@ function renderStatsGrid2(stats) {
         <div class="grid-header">W</div>
         <div class="grid-header">C</div>
         <div class="grid-header">M / W / F</div>
+    `;
+    return `
+    <div class="stats-grid">
+        ${header}
         <div class="grid-item">${stats.ranged > 0 ? stats.melee+" / "+stats.ranged+"+" : " "+stats.melee+" / -"}</div>
         <div class="grid-item">${stats.strength}</div>
         <div class="grid-item">${stats.defence}</div>
@@ -497,7 +592,6 @@ function activatePlayerTab(eleTabControl, player) {
     const lblToActivate = eleTabControl.querySelector(`.player-tab-label-${player}`);
     lblToActivate.classList.add('active');
 }
-
 
 function establishCallbacks() {
     // submit action of the playerNameForm
@@ -587,7 +681,10 @@ function establishCallbacks() {
             activatePlayerTab(armyDisplayEle,playerArmy.player);
         }
     });
+
+    
 }
+
 function loadState() {
     const cookie = getCookie('data');
     if (!cookie) {
@@ -607,6 +704,7 @@ function addPlayer(txt) {
     setCookie('data', JSON.stringify(state));
     renderStep();
 }
+
 
 const tabcontainer = document.querySelector('.tab-container');
 const numTabs = tabcontainer.querySelectorAll('.tab').length;

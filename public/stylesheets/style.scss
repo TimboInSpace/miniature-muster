@@ -162,7 +162,7 @@ button, a:hover {
   .tab {
     display: none;
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0px auto;
     flex-direction: column;
     height: 100%;
@@ -203,6 +203,9 @@ footer {
 .flex-col {
   display: flex;
   flex-direction: column;
+}
+.inline {
+  display: inline-block;
 }
 
 .unit-details {
@@ -371,20 +374,28 @@ footer {
   }
 }
 
-.unit-compare-details
-            .unit-compare-list-container
-            .unit-compare-outcomes
-
 .unit-compare-pane {
+  .unit-list-item-header{
+    margin: 1.5rem 0 0;
+  }
 
   .unit-compare-details {
-
-  }
-  .unit-compare-list-container {
-
+    transition: ease-in-out 0.2s;
   }
   .unit-compare-outcomes {
     border-top: 1px solid $font-medium;
+  }
+}
+
+.unit-list-item {
+  transition: ease-in-out 0.2s;
+  &.active {
+    border-left: 3px solid; // Make border on only two sides, but then also add border-radius
+    border-right: 3px solid;
+    border-radius: 0.5em;
+  }
+  &:hover {
+    background-color: $bg-darker;
   }
 }
 
@@ -407,6 +418,7 @@ footer {
   }
   .wound-val {
     padding: 0.15em 0.25em;
+    transition: ease-in-out 0.2s;
   }
   .num-label {
     font-weight: bolder;

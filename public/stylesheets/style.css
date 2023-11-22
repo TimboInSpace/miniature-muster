@@ -145,7 +145,7 @@ button:hover, a:hover:hover {
 .tab-container .tab {
   display: none;
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0px auto;
   flex-direction: column;
   height: 100%;
@@ -183,6 +183,10 @@ footer {
 .flex-col {
   display: flex;
   flex-direction: column;
+}
+
+.inline {
+  display: inline-block;
 }
 
 .unit-details {
@@ -345,8 +349,26 @@ footer {
   font-weight: lighter;
 }
 
-.unit-compare-details .unit-compare-list-container .unit-compare-outcomes .unit-compare-pane .unit-compare-outcomes {
+.unit-compare-pane .unit-list-item-header {
+  margin: 1.5rem 0 0;
+}
+.unit-compare-pane .unit-compare-details {
+  transition: ease-in-out 0.2s;
+}
+.unit-compare-pane .unit-compare-outcomes {
   border-top: 1px solid #65ADF6;
+}
+
+.unit-list-item {
+  transition: ease-in-out 0.2s;
+}
+.unit-list-item.active {
+  border-left: 3px solid;
+  border-right: 3px solid;
+  border-radius: 0.5em;
+}
+.unit-list-item:hover {
+  background-color: #282828;
 }
 
 .wound-chart {
@@ -363,6 +385,7 @@ footer {
 }
 .wound-chart .wound-val {
   padding: 0.15em 0.25em;
+  transition: ease-in-out 0.2s;
 }
 .wound-chart .num-label {
   font-weight: bolder;
