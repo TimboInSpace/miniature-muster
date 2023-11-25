@@ -234,8 +234,8 @@ function renderArmyComparisonList(ele) {
             }
             tabContentListHTML += `
                 <li class="unit-list-item" unitindex="${idx}" onclick="handleUnitComparisonListClick(event,${idx},'${army.player}')">
-                    <div class=flex-row">
-                        <span class="unit-list-item-header" style="width: 10em; text-overflow: ellipsis;"><b>${unit.unit.name}</b></span>
+                    <div class="flex-row">
+                        <span class="unit-list-item-header"><b>${unit.unit.name}</b></span>
                         <div class="stats-grid-container inline">
                             ${renderStatsGrid2(unit.unit, true)}
                         </div>
@@ -253,7 +253,7 @@ function renderArmyComparisonList(ele) {
                 </div>
                 
                 <div class="flex-row" style="padding: 0.5rem">
-                    <span style="width: 10em; margin-left: 0.5rem;"></span>
+                    <span style="width: 15em; margin-left: 0.5rem;"></span>
                     <div class="stats-grid">
                         <div class="grid-header">F</div>
                         <div class="grid-header">S</div>
