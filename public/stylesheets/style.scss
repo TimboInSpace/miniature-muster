@@ -1,5 +1,12 @@
+@font-face {
+  font-family: 'Lugrasimo';
+  src: url('/fonts/Lugrasimo-Regular.ttf');
+}
+
 $heading-large: 14px "Montserrat", Arial, sans-serif;
-$text-main: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+$text-main: 12px "Lugrasimo", "Lucida Grande", Helvetica, Arial, sans-serif;
+// Lugrasimo 
+
 $primary: blue;
 $secondary: grey;
 $highlight: #CCCCCC;
@@ -23,7 +30,7 @@ $font-dark: #0C70D4;
   
 }
 main {
-  padding: 2rem;
+  padding: 2rem 2rem 0 2rem;
   font: $text-main;
   height: calc(100vh - 9rem);
   overflow-y: scroll;
@@ -48,6 +55,8 @@ input, select, button {
   border-radius: 0.5em;
   padding: 0.5em;
   transition: 0.3s ease-out;
+  font: $text-main;
+  font-size: 0.8rem;
 }
 label {
   display: block;
@@ -216,6 +225,7 @@ footer {
   .unit-header {
     > * {
       &:first-child {
+        font-weight: bolder;
         flex-grow: 1;
       }
     }
@@ -307,7 +317,7 @@ footer {
     display: inline-block;
     width: 50%;
     &:first-child {
-      margin-right: 1rem;
+      margin-right: 1rem;   
     }
   }
 }
@@ -419,6 +429,17 @@ footer {
   .wound-val {
     padding: 0.15em 0.25em;
     transition: ease-in-out 0.2s;
+    &.active.pulse-animation {
+      animation: pulse 0.25s ease-out;
+    }
+    @keyframes pulse {
+      from {
+        scale: 1.5;
+      }
+      to {
+        scale: 1.0;
+      }
+    }
   }
   .num-label {
     font-weight: bolder;
@@ -431,5 +452,102 @@ footer {
     border: 1px solid;
     border-radius: 99px;
     box-shadow: 0px 0px 1em $font-light;
+  }
+}
+
+.tab-overlay-container {
+  position: absolute; 
+  top: 10rem;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(64,64,64,0.4);
+  transition: ease-in-out 0.2s;
+  .tab-overlay.unit-comparison {
+    width: 10rem;
+    border: 3px solid;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    text-align: center;
+    span {
+      display: inline-block;
+      font-size: 3rem;
+      text-align: center;
+      &.slide-to-left {
+        animation: slide-left 0.25s ease-out;
+      }
+      &.slide-to-right {
+        animation: slide-right 0.25s ease-out;
+      }
+      @keyframes slide-left {
+        to {
+          transform: translateX(-4rem); /* Move the element to the right by 200 pixels */
+          opacity: 0; /* Make the element completely transparent */
+        }
+      }
+      @keyframes slide-right {
+        to {
+          transform: translateX(4rem);
+          opacity: 0;
+        }
+      }
+    }
+  }
+}
+
+.outcomes-container {
+  width: 12em;
+  border: 1px solid;
+  border-radius: 0.5rem;
+  margin-left: 1em;
+  .outcome {
+    width: 100%;
+    height: 50%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    text-shadow: 0 0 12px black;
+  }
+  .outcome-melee {
+    justify-content: center;
+    > * {
+      display: inline-block;
+    }
+  }
+  .outcome-ranged {
+    border-top: 1px solid;
+    justify-content: space-around;
+    padding: 0;
+    > * {
+      padding: 0.5rem;
+    }
+  }
+  .outcome-label {
+    font-weight: lighter;
+    letter-spacing: 0.2rem;
+  }
+  .outcome-label-bottom {
+    text-align: center;
+  }
+  .outcome-label-right {
+    text-align: left;
+  }
+  .outcome-value {
+    font: $heading-large;
+    font-size: 4rem;
+    font-weight: bolder;
+  }
+  .outcome-icon {
+    z-index: -1;
+    font-size: 8rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.6; /* Adjust the opacity as needed */
+    filter: blur(4px); /* Adjust the blur radius as needed */
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transform: translate(calc(50% - 4rem), 0%);
   }
 }

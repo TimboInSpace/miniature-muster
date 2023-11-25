@@ -143,13 +143,13 @@ block content
         .unit-compare-outcomes.flex-row
           .wound-chart(style="flex-grow: 4")
           .outcomes-container.flex-col(style="flex-grow: 2")
-            .outcome.outcome-melee(style="flex-grow: 1")
-              span 4 
-              span to wound
-            .outcome.outcome-ranged(style="flex-grow: 1")
-              span -
-              span 
+            .outcome.outcome-melee
+            .outcome.outcome-ranged
       .tab-footers
         .flex-row.step-buttons
           button.prev-step-button() PREVIOUS
           button.next-step-button() CONTINUE
+      .tab-overlay-container
+        a.tab-overlay.unit-comparison.flex-row(onclick="handleComparisonRoleToggle(event)")
+          span.pane-roll.pane-0-role(style="flex-grow: 1") ⚔️
+          span.pane-roll.pane-1-role(style="flex-grow: 1") 🛡️

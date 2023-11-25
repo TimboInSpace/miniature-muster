@@ -119,7 +119,7 @@ function renderStep() {
             });
             const woundDiv = document.querySelector('.wound-chart');
             if (woundDiv) {
-                woundDiv.innerHTML = renderWoundChart(5,7);
+                woundDiv.innerHTML = renderWoundChart();
             }
             break;
         default:
@@ -232,17 +232,6 @@ function renderArmyComparisonList(ele) {
                 // });
                 pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
             }
-            /* Was uising this earler
-                                    <div>
-                            <div class="flex-row unit-list-item-header">
-                                <span>${unit.quantity}x </span>
-                                <span style="flex-grow: 1;"><b>${unit.unit.name}</b></span>
-                                <span>${pointCost} Pts</span>
-                            </div>
-                            ${renderStatsGrid2(unit.unit)}
-                            <div class="flex-col">${unitModsHTML}</div>
-                        </div>
-            */
             tabContentListHTML += `
                 <li class="unit-list-item" unitindex="${idx}" onclick="handleUnitComparisonListClick(event,${idx},'${army.player}')">
                     <div class=flex-row">
@@ -288,19 +277,33 @@ function renderArmyComparisonList(ele) {
         <div class="player-tab-labels">${tabLabelHTML}</div>
         <div class="player-tab-container">${tabContentHTML}</div>
     `;
+    if (displayState.attackerIndex == null) {
+        displayState.attackerIndex = 0;
+    }
 }
 
 function handleUnitComparisonListClick(event,idx,player) {
     // TODO: Swap this out for a lookup of the unit ID from the Units array
     const unit = state.armies.find(a => a.player === player)?.units[idx];
+    if (!unit) {
+        console.error(`attempted to look up invalid unit with index ${idx} and player ${player}`);
+        return;
+    }
+    const totalStats = statsWithMods(unit);
     // Get a reference to the container holding all the controls that display details on the unit
     const unitComparePane = findParent(event.target, '.unit-compare-pane');
     // Highlight the clicked item
     const unitCompareList = findParent(event.target, '.unit-list');
     if (unitCompareList) {
-        Array.from(unitCompareList.children).forEach( li => {
-            li.classList.remove('active');
-        });
+        // Array.from(unitCompareList.children).forEach( li => {
+        //     li.classList.remove('active');
+        // });
+        const mainTab = findParent(event.target, '.unit-compare-pane');
+        if (mainTab) {
+            Array.from(mainTab.querySelectorAll('.unit-list-item')).forEach( li => {
+                li.classList.remove('active');
+            })
+        }
         try {
             unitCompareList.children[idx].classList.add('active');
         }
@@ -309,10 +312,11 @@ function handleUnitComparisonListClick(event,idx,player) {
         }
 
     }
+    // Find the elements in the Details section, and update them with the unit
     const unitCompareDetails = unitComparePane.querySelector('.unit-compare-details');
     if (unitCompareDetails) {
         const statsGrid = unitCompareDetails.querySelector('.stats-grid');
-        const totalStats = statsWithMods(unit);
+        
         if (statsGrid) {
             statsGrid.outerHTML = renderStatsGrid2(totalStats);
         }
@@ -333,28 +337,142 @@ function handleUnitComparisonListClick(event,idx,player) {
                 return acc + html
             }, '');
         }
-    }    
+    }
+    // update the displayState
+    // But first, is this the left or the right pane?
+    const pane = findParent(event.target, '.unit-compare-pane');
+    if (pane) {
+        // i should be 0 for the left pane and 1 for the right pane
+        const i = Array.from(pane.parentNode.children).indexOf(pane);
+        displayState[`pane-${i}`] = {
+            unitID: unit.unit.unitID,
+            clickedStrength: totalStats.strength,
+            clickedDefence: totalStats.defence,
+            clickedFight: totalStats.melee,
+            clickedRangedFight: totalStats.ranged,
+            clickedRangedStrength: totalStats.rangedstrength
+        };
+        refreshOutcomes(i);
+    } else { 
+        console.error(`Couldn't find the ancestor pane element for the list click event`); 
+    }
+}
+
+function refreshOutcomes(displayStateUpdatedIndex) {
+    
+    // Which side is attacking? Which is defending?
+    if (displayState.attackerIndex == null) {
+        displayState.attackerIndex = 0;
+    }
+
+    // Put the correct emoji into the correct role icon box
+    const attackEmoji = '⚔️';
+    const defendEmoji = '🛡️';
+    const pane0Role = document.querySelector('.pane-0-role');
+    const pane1Role = document.querySelector('.pane-1-role');
+    if (pane0Role && pane1Role) {
+        pane0Role.innerHTML = (displayState.attackerIndex === 0) ? attackEmoji : defendEmoji;
+        pane1Role.innerHTML = (displayState.attackerIndex === 1) ? attackEmoji : defendEmoji;
+    } else {
+        console.log(`pane0 or pane1 not found...????`);
+    }
+
+    // refresh the wound chart and outcome displays
+    const woundDiv = document.querySelector('.wound-chart');
+    const attackerDisplayState = displayState[`pane-${displayState.attackerIndex}`];
+    const defenderDisplayState = displayState[`pane-${toggle(displayState.attackerIndex)}`];
+    if (attackerDisplayState && defenderDisplayState && woundDiv) {
+        // Refresh the wound chart
+        woundDiv.innerHTML = renderWoundChart(
+            attackerDisplayState.clickedStrength,
+            defenderDisplayState.clickedDefence,
+        );
+        // Refresh the "X to wound" boxes
+        const outcomeMelee = document.querySelector('.outcome-melee');
+        const outcomeRanged = document.querySelector('.outcome-ranged');
+        if (outcomeMelee && outcomeRanged) {
+            // Update the melee box
+            const s = displayState[`pane-${displayState.attackerIndex}`].clickedStrength;
+            const d = displayState[`pane-${toggle(displayState.attackerIndex)}`].clickedDefence;
+            outcomeMelee.innerHTML = `
+                <div class="outcome-icon">🗡️</div>
+                <div class="outcome-value">
+                    <span>${getWoundVal(s,d)}+</span>
+                </div>
+                <div class="outcome-label outcome-label-right">
+                    <span>TO</span><br/>
+                    <span>WOUND</span>
+                </div>
+            `;
+            // Update the ranged box 
+            const rf = displayState[`pane-${displayState.attackerIndex}`].clickedRangedFight;
+            const rs = displayState[`pane-${displayState.attackerIndex}`].clickedRangedStrength;
+            outcomeRanged.innerHTML = (!rs || rs === 0) ? '' : `
+                <div class="outcome-icon">🏹</div>
+                <div>
+                    <div class="outcome-value">${rf}+</div>
+                    <div class="outcome-label outcome-label-bottom">
+                        TO HIT
+                    </div>
+                </div>
+                <div>
+                    <div class="outcome-value">${getWoundVal(rs,d)}+</div>
+                    <div class="outcome-label outcome-label-bottom">
+                        TO WOUND
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+ 
+function toggle(x) {
+    if (x === 0) { return 1;} 
+    else { return 0;}
+}
+
+function handleComparisonRoleToggle(event) {
+    if (displayState.attackerIndex == null) {
+        displayState.attackerIndex = 0;
+    } else {
+        const newstate = toggle(displayState.attackerIndex);
+        displayState.attackerIndex = newstate;
+    }
+    // Apply the slide animation to each, then remove it.
+    const pane0Role = document.querySelector('.pane-0-role');
+    const pane1Role = document.querySelector('.pane-1-role');
+    pane0Role.classList.add('slide-to-right');
+    pane1Role.classList.add('slide-to-left');
+    setTimeout(() => {
+        pane0Role.classList.remove('slide-to-right');
+        pane1Role.classList.remove('slide-to-left');
+    },250);
+    refreshOutcomes(-1);
 }
 
 function statsWithMods(unit) {
     // TODO: Look up each mod by a modifierID instead of the mod itself by doing a .map() call
     // Then sum up each stat using a .reduce() call
     const statsObj = {name: unit.unit.name};
-    const vars = ['melee', 'ranged', 'strength', 'defence', 'attack', 'wounds', 'courage', 'might', 'will', 'fate', 'pts'];
+    const vars = ['melee', 'ranged', 'strength', 'defence', 'attack', 'wounds', 'courage', 'might', 'will', 'fate', 'pts', 'rangedstrength'];
     vars.forEach( stat => {
         statsObj[stat] = unit.unit[stat] + unit.mods.reduce((acc,cur)=>{return acc + cur[stat]},0);
     });
     return statsObj;
 }
 
+function getWoundVal(s,d) {
+    if (!s || !d || s < 1 || s > woundData.length || woundData.length === 0
+        || d < 1 || d > woundData[0].length) {
+            return 0;
+        }
+    return woundData[s-1][d-1];
+}
+
 function renderWoundChart(str = 0, def = 0) {
-    
     if (woundData.length < 10 || woundData[0].length < 10) {
         console.error('Invalid wound chart was provided');
         return 'INVALID WOUND CHART';
-    }
-    function getWoundVal(s,d) {
-        return woundData[s-1][d-1];
     }
     let woundChartHTML = '';
     for (let s = 1; s <= woundData.length; s++) {
@@ -364,12 +482,20 @@ function renderWoundChart(str = 0, def = 0) {
             const active = (s === str || d === def) ? 'active' : '';
             const intersection = (s === str && d === def) ? 'intersection' : '';
             woundChartHTML += `
-                <div class="wound-val roll-val roll-${s}-${d} ${active} ${intersection}" style="grid-area: ${r} / ${c} / ${r} / ${c}">
+                <div class="wound-val roll-val roll-${s}-${d} ${active} ${intersection} pulse-animation" style="grid-area: ${r} / ${c} / ${r} / ${c}">
                  ${getWoundVal(s,d)}
                 </div>
             `;
         }
     }
+
+    // Remove the pulse-animation from all .wound-val items after the timeout
+    setTimeout(()=>{
+        Array.from(document.querySelectorAll('.wound-val')).forEach(wv => {
+            wv.classList.remove('pulse-animation');
+        });
+    }, 500);
+
     return `
             <div class="col-label" style="text-align: center; grid-area: 1 / 3 / 1 / 12">Defence</div>
             <div class="row-label" style="transform: rotate(270deg); transform-origin: 120% 15%; grid-area: 3 / 1 / 12 / 1">Strength</div>
