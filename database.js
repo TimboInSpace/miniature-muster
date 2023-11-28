@@ -52,6 +52,7 @@ class DbConnection {
             queries.createTableModifiers,
             queries.createTableUnitModifiers,
             queries.initializeUnits,
+            queries.initializeHeroes,
             queries.initializeModifiers,
             queries.initializeUnitModifiers
         ];
