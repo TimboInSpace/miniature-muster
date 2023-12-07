@@ -108,10 +108,8 @@ function renderStep() {
                 break;
             }
             renderArmyDisplay(unitDisplayTabControl);
-
             break;
         case 3: 
-            currentTab.querySelector('.next-step-button').disabled = true;
             const panes = currentTab.querySelectorAll('.unit-compare-pane');
             panes.forEach( elePane => {
                 const tabCtl = elePane.querySelector('.player-tab-control');
@@ -121,6 +119,19 @@ function renderStep() {
             if (woundDiv) {
                 woundDiv.innerHTML = renderWoundChart();
             }
+            currentTab.querySelector('.next-step-button').disabled = true;
+            // If there is at least one player, the lefthand pane should have that player activated.
+            // Likewise, righthand pane should show second player if there are >= 2 players
+            panes.forEach( (elePane,i) => {
+                const labels = elePane.querySelectorAll('.player-tab-label');
+                if (i === 0 && state.players.length >= 1 && labels.length >= 1) {
+                    // Set this pane to be the first player
+                    labels[0].click();
+                } else if (i === 1 && state.players.length >= 2 && labels.length >= 2) {
+                    // Set this pane to be the second player
+                    labels[1].click();
+                }
+            });
             break;
         default:
             break;
@@ -261,7 +272,11 @@ function renderArmyComparisonList(ele) {
                         <div class="grid-header">A</div>
                         <div class="grid-header">W</div>
                         <div class="grid-header">C</div>
-                        <div class="grid-header">M / W / F</div>
+                        <div class="grid-header">M</div>
+                        <div class="grid-header">/</div>
+                        <div class="grid-header">W</div>
+                        <div class="grid-header">/</div>
+                        <div class="grid-header">F</div>
                     </div>
                 </div>
                 
@@ -291,7 +306,7 @@ function handleUnitComparisonListClick(event,idx,player) {
     }
     const totalStats = statsWithMods(unit);
     // Get a reference to the container holding all the controls that display details on the unit
-    const unitComparePane = findParent(event.target, '.unit-compare-pane');
+    
     // Highlight the clicked item
     const unitCompareList = findParent(event.target, '.unit-list');
     if (unitCompareList) {
@@ -310,15 +325,52 @@ function handleUnitComparisonListClick(event,idx,player) {
         catch {
             console.error(`Attempted to highlight nonexistent child item of unit-list in Step 3: (index: ${idx})`);
         }
-
     }
+    renderUnitCompareDetails(totalStats, unit.mods, event.target);
+    // update the displayState
+    // But first, is this the left or the right pane?
+    const pane = findParent(event.target, '.unit-compare-pane');
+    if (pane) {
+        // i should be 0 for the left pane and 1 for the right pane
+        const i = Array.from(pane.parentNode.children).indexOf(pane);
+        const selectedListItem = unitCompareList.querySelector('li.active');
+        displayState[`pane-${i}`] = {
+            unitID: unit.unit.unitID,
+            clickedStrength: totalStats.strength,
+            clickedDefence: totalStats.defence,
+            clickedFight: totalStats.melee,
+            clickedRangedFight: totalStats.ranged,
+            clickedRangedStrength: totalStats.rangedstrength,
+            selectedListItem: selectedListItem,
+            selectedPlayer: player
+        };
+        refreshOutcomes(i);
+        
+    } else { 
+        console.error(`Couldn't find the ancestor pane element for the list click event`); 
+    }
+    // Refresh each floating-stat-buttons. Clear the old event handler and set a new one
+    const statButtons = document.querySelectorAll('.floating-stat-buttons');
+    statButtons.forEach( btn => {
+        try {
+            btn.removeEventListener('click');
+        } catch {
+            //console.info(`Stat button did not have click event to remove.`);
+        }
+        btn.addEventListener('click', (event, stat) => {
+            handleStatAdjust(event, stat, unit);
+        });
+    });
+}
+
+function renderUnitCompareDetails(totalStats, modslist, parentEle) {
+    const unitComparePane = findParent(parentEle, '.unit-compare-pane');
     // Find the elements in the Details section, and update them with the unit
     const unitCompareDetails = unitComparePane.querySelector('.unit-compare-details');
     if (unitCompareDetails) {
         const statsGrid = unitCompareDetails.querySelector('.stats-grid');
-        
         if (statsGrid) {
-            statsGrid.outerHTML = renderStatsGrid2(totalStats);
+            statsGrid.outerHTML = renderStatsGrid2(totalStats, false, true);
         }
         const unitHeader = unitCompareDetails.querySelector('.unit-header');
         if (unitHeader && unitHeader.children.length >= 2) {
@@ -327,7 +379,7 @@ function handleUnitComparisonListClick(event,idx,player) {
         }
         const unitMods = unitCompareDetails.querySelector('.unit-modifiers');
         if (unitMods) {
-            unitMods.innerHTML = unit.mods.reduce( (acc, mod) => {
+            unitMods.innerHTML = modslist.reduce( (acc, mod) => {
                 const html = `
                 <div class="unit-mod-display">
                     <span>${mod.name} (+${mod.pts})</span>
@@ -338,24 +390,62 @@ function handleUnitComparisonListClick(event,idx,player) {
             }, '');
         }
     }
-    // update the displayState
-    // But first, is this the left or the right pane?
-    const pane = findParent(event.target, '.unit-compare-pane');
-    if (pane) {
-        // i should be 0 for the left pane and 1 for the right pane
-        const i = Array.from(pane.parentNode.children).indexOf(pane);
-        displayState[`pane-${i}`] = {
-            unitID: unit.unit.unitID,
-            clickedStrength: totalStats.strength,
-            clickedDefence: totalStats.defence,
-            clickedFight: totalStats.melee,
-            clickedRangedFight: totalStats.ranged,
-            clickedRangedStrength: totalStats.rangedstrength
-        };
-        refreshOutcomes(i);
-    } else { 
-        console.error(`Couldn't find the ancestor pane element for the list click event`); 
+}
+
+function handleStatAdjust(event, statType, unitRef) {
+    // When the unit is clicked, each floating-stat-button should have its click event reset, then this code runs
+
+    const stat = event.target.getAttribute('stattype');
+
+    // First of all, is it an increase or decrease?
+    let change = 0;
+    if (event.target.classList.contains('floating-stat-button-increase')) {
+        change = 1;
+    } else if (event.target.classList.contains('floating-stat-button-decrease')) {
+        change = -1;
+    } else {
+        console.error('Could not find either increase or decrease class on the element');
     }
+
+    // Adjust the correct stat for the unit.
+    // Note that doing this means the state has unsaved changes
+    unitRef.unit[stat] += change;
+    
+    // Re-draw the details. Need to re-draw the unit comparison list, and re-draw the unit details.
+    const panes = document.querySelectorAll('.unit-compare-pane');
+    
+    panes.forEach( (elePane, i) => {
+        const tabCtl = elePane.querySelector('.player-tab-control');
+        
+        // Grab a reference to the currently selected list item (unit); cache it in the displayState
+        // This is done in handleUnitComparisonListClick. The property is displayState.pane-0.selectedListItem
+
+        // Refresh the unit comparison list (clearing the selection)
+        renderArmyComparisonList(tabCtl);
+        
+        // Using the list item cached in the display state, set that list item to active again
+        if (displayState && displayState[`pane-${i}`] && displayState[`pane-${i}`]['selectedListItem'] && displayState[`pane-${i}`]['selectedPlayer']) {
+            // Make sure the correct player tab is shown
+            const player = displayState[`pane-${i}`]['selectedPlayer'];
+            activatePlayerTab(tabCtl, player);
+            
+            // Set the list item to be active again.
+            const li = displayState[`pane-${i}`]['selectedListItem'];
+            //li.click();
+            //Get the unit index ?
+            const idx = li.getAttribute('unitindex');
+            //const ele = li.querySelector('.unit-list-item-header');
+            //handleUnitComparisonListClick({target: ele}, idx, player);
+            // Problem: cant use li to set the target of the event. I need to look it up 
+            const playerTab = tabCtl.querySelector(`.player-tab-content-${player}`);
+            const ele = playerTab?.querySelector('.unit-list > *');
+            if (ele) {
+                handleUnitComparisonListClick({target: ele}, idx, player);
+            }
+        }
+    });
+
+    saveState(); // Save the state (the unit with updated stats) to the cookie
 }
 
 function refreshOutcomes(displayStateUpdatedIndex) {
@@ -529,7 +619,6 @@ function handleRemoveUnitButtonClick(event, playerName) {
         console.error('Could not find element holding unitindex for deleting this unit.');
         return;
     }
-    console.log(event.target);
     const unitIdx = liEle.getAttribute('unitindex');
     if (!unitIdx) {
         console.error('Could not find index for unit to delete');
@@ -615,10 +704,12 @@ function renderSelectedUnitDetails(tgt) {
     const mods = getModifiersForUnit(unit);
     displayState.unitSelectionSelectedUnit = unit;
     displayState.unitSelectionShownMods = mods;
+    displayState.unitSelectionSelectedMods = [];
     displayState.scoreSubtotal = unit.pts;
     displayState.selectionQuantity = 1;
     eleName.setAttribute('key', unit.unitID);
     let modsHTML = '';
+    // console.log(`Got modifiers for unit\n${JSON.stringify(unit)}\n${JSON.stringify(mods)}`);
     mods.forEach( mod => {
         modsHTML += `
             <button class="mod-details" key="${mod.modifierID}" onclick="handleModToggle(event)">
@@ -631,7 +722,8 @@ function renderSelectedUnitDetails(tgt) {
     eleName.innerHTML = `${unit.name}`;
     elePts.innerHTML = `${unit.pts} Pts`;
     eleQty.value = displayState.selectionQuantity;
-    renderStatsGrid(statsGrid, unit)
+    //renderStatsGrid(statsGrid, unit);
+    statsGrid.outerHTML = renderStatsGrid2(unit,false,false);
     eleMods.innerHTML = modsHTML;
     updateShownScore();
 }
@@ -639,17 +731,26 @@ function renderSelectedUnitDetails(tgt) {
 function renderStatsGrid(statsGridEle, stats) {
     // Update an existing stats grid
     const gridItems = statsGridEle.children;
-    if (gridItems.length != 14) { console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); return;}
+    if (gridItems.length != 22) { 
+        console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); 
+        console.error(gridItems);
+        return;
+    }
     gridItems[7].innerHTML = stats.ranged > 0 ? `${stats.melee} / ${stats.ranged}+` : `${stats.melee} / -`;
     gridItems[8].innerHTML =  `${stats.strength}`;
     gridItems[9].innerHTML =  `${stats.defence}`;
     gridItems[10].innerHTML = `${stats.attack}`;
     gridItems[11].innerHTML = `${stats.wounds}`;
     gridItems[12].innerHTML = `${stats.courage}`;
-    gridItems[13].innerHTML = `${stats.might} / ${stats.will} / ${stats.fate}`;
+    gridItems[13].innerHTML = `${stats.might}`;
+    gridItems[14].innerHTML = `/`;
+    gridItems[15].innerHTML = `${stats.will}`;
+    gridItems[16].innerHTML = `/`;
+    gridItems[17].innerHTML = `${stats.fate}`;
 }
 
-function renderStatsGrid2(stats, minimal = false) {
+function renderStatsGrid2(stats, minimal = false, addAdjuster = false) {
+    //<div class="grid-header">M / W / F</div>
     const header = minimal ? '' : `
         <div class="grid-header">F</div>
         <div class="grid-header">S</div>
@@ -657,8 +758,21 @@ function renderStatsGrid2(stats, minimal = false) {
         <div class="grid-header">A</div>
         <div class="grid-header">W</div>
         <div class="grid-header">C</div>
-        <div class="grid-header">M / W / F</div>
+        <div class="grid-header">M</div>
+        <div class="grid-header">/</div>
+        <div class="grid-header">W</div>
+        <div class="grid-header">/</div>
+        <div class="grid-header">F</div>
     `;
+    function adjuster(stat) {
+        if (!addAdjuster) return '';
+        return `
+            <div class="floating-stat-button-container">
+                <button stattype="${stat}" class="floating-stat-buttons floating-stat-button-increase">▲</button>
+                <button stattype="${stat}" class="floating-stat-buttons floating-stat-button-decrease">▼</button>
+            </div>`;
+    }
+    //<div class="grid-item">${stats.might} / ${stats.will} / ${stats.fate}</div>
     return `
     <div class="stats-grid">
         ${header}
@@ -666,9 +780,13 @@ function renderStatsGrid2(stats, minimal = false) {
         <div class="grid-item">${stats.strength}</div>
         <div class="grid-item">${stats.defence}</div>
         <div class="grid-item">${stats.attack}</div>
-        <div class="grid-item">${stats.wounds}</div>
+        <div class="grid-item">${stats.wounds}${adjuster("wounds")}</div>
         <div class="grid-item">${stats.courage}</div>
-        <div class="grid-item">${stats.might} / ${stats.will} / ${stats.fate}</div>
+        <div class="grid-item">${stats.might}${adjuster("might")}</div>
+        <div class="grid-item">/</div>
+        <div class="grid-item">${stats.will}${adjuster("will")}</div>
+        <div class="grid-item">/</div>
+        <div class="grid-item">${stats.fate}${adjuster("fate")}</div>
     </div>
    `;
 }
@@ -683,7 +801,8 @@ function renderSelectionList(selectionEle, arrKeys, arrValues, showNum = 1) {
         `;
     }
     if (showNum != 1) {
-        selectionEle.setAttribute('size', Math.min(arrKeys.length, showNum));
+        //selectionEle.setAttribute('size', Math.min(arrKeys.length, showNum));
+        selectionEle.setAttribute('size', arrKeys.length);
     }
     selectionEle.innerHTML = html;
 }
@@ -724,7 +843,9 @@ function establishCallbacks() {
     document.getElementById('playerNameForm').addEventListener('submit', function (ev) {
         ev.preventDefault();
         const txt = document.getElementById('playerNameInput');
-        addPlayer(txt.value);
+        // Use the regular expression to match only letters
+        var txtLettersOnly = txt.value.replace(/[^a-zA-Z]/g, '');
+        addPlayer(txtLettersOnly);
         txt.value = "";
     });
     // Continue button
@@ -818,7 +939,14 @@ function loadState() {
         state = { step:1, players:[]};
         return;
     }
-    state = JSON.parse(cookie);
+    try {
+        state = JSON.parse(cookie);
+    } catch {
+        console.error('Failed to load state!');
+        console.error(JSON.stringify(state));
+        console.error(`From cookie: \n${cookie}`);
+    }
+    
 }
 
 function saveState() {
@@ -826,6 +954,17 @@ function saveState() {
 }
 
 function addPlayer(txt) {
+    // Check that txt is a nonempty string of only letters
+    const regex = /[a-zA-Z]+/;
+    if (!txt || typeof txt !== 'string' || !regex.test(txt)) {
+        alert('Name field should not be empty.');
+        return;
+    }
+    // Check that the name is not already in players
+    if (state.players.includes(txt)) {
+        alert('Please enter a name that hasn\'t been chosen already');
+        return;
+    }
     state.players = [...state.players, txt];
     setCookie('data', JSON.stringify(state));
     renderStep();

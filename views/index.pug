@@ -27,7 +27,7 @@ block content
         p Players are now defined.
         p Please select units to add to each players' armies.
       .tab-main
-        .flex-row.two-pane
+        .two-pane
           .unitSelectionPane
             .unit-list
               input(id="unitSelectionSearch")
@@ -35,8 +35,8 @@ block content
                 option N/A
             .unit-details
               .unit-header.flex-row
-                span(id="unitSelectionUnitName") Unitname Namedness
-                span(id="unitSelectionUnitPts") 215 Pts
+                span(id="unitSelectionUnitName") 
+                span(id="unitSelectionUnitPts") 
               .stats-grid
                 .grid-header F 
                 .grid-header S
@@ -44,16 +44,24 @@ block content
                 .grid-header A
                 .grid-header W 
                 .grid-header C
-                .grid-header M / W / F
-                .grid-item 0/-
-                .grid-item 0
-                .grid-item 0
-                .grid-item 0
-                .grid-item 0
-                .grid-item 0
-                .grid-item 0 / 0 / 0
+                .grid-header M
+                .grid-header /
+                .grid-header W
+                .grid-header /
+                .grid-header F
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
+                .grid-item 
               .unit-modifiers
-                p No modifiers available.
+                p 
               .flex-row
                 .input-group.inline
                   label(for="unitSelectionPlayer") Add to army:
@@ -67,8 +75,8 @@ block content
                   span.subtotal-value(id="unitSelectionSubtotal") 0 Pts
                   button(id="unitSelectionAddUnitButton", value="RECRUIT") RECRUIT
           .selection-display-pane.flex-col
-            .selection-display-details
-              .player-tab-control(id="unitDisplayTabControl")
+            .selection-display-details.h-100
+              .player-tab-control(id="unitDisplayTabControl").h-100
                 .player-tab-labels
                 .player-tab-container
       .tab-footers
@@ -81,7 +89,7 @@ block content
         p Players' armies are now defined.
         p Proceed with your match.
       .tab-main
-        .flex-row.two-pane
+        .two-pane
           .unit-compare-pane
             .player-tab-control
               .player-tab-labels
@@ -91,8 +99,8 @@ block content
             .unit-compare-details
               .unit-details
                 .unit-header.flex-row
-                  span(id="unitSelectionUnitName") Unitname Namedness
-                  span(id="unitSelectionUnitPts") 215 Pts
+                  span(id="unitSelectionUnitName") 
+                  span(id="unitSelectionUnitPts") 
                 .stats-grid
                   .grid-header F 
                   .grid-header S
@@ -100,14 +108,22 @@ block content
                   .grid-header A
                   .grid-header W 
                   .grid-header C
-                  .grid-header M / W / F
-                  .grid-item 0/-
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0 / 0 / 0
+                  .grid-header M
+                  .grid-header /
+                  .grid-header W
+                  .grid-header /
+                  .grid-header F
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
                 .unit-modifiers
                   p No modifiers available.
             .unit-compare-list-container
@@ -120,8 +136,8 @@ block content
             .unit-compare-details
               .unit-details
                 .unit-header.flex-row
-                  span Unitname Namedness
-                  span 215 Pts
+                  span 
+                  span 
                 .stats-grid
                   .grid-header F 
                   .grid-header S
@@ -129,14 +145,22 @@ block content
                   .grid-header A
                   .grid-header W 
                   .grid-header C
-                  .grid-header M / W / F
-                  .grid-item 0/-
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0
-                  .grid-item 0 / 0 / 0
+                  .grid-header M
+                  .grid-header /
+                  .grid-header W
+                  .grid-header /
+                  .grid-header F
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
+                  .grid-item 
                 .unit-modifiers
                   p No modifiers available.
             .unit-compare-list-container
