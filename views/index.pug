@@ -177,3 +177,8 @@ block content
         a.tab-overlay.unit-comparison.flex-row(onclick="handleComparisonRoleToggle(event)")
           span.pane-roll.pane-0-role(style="flex-grow: 1") ⚔️
           span.pane-roll.pane-1-role(style="flex-grow: 1") 🛡️
+  .modal(id="share-modal", onclick="handleModalCloseClick(event)")
+    .modal-content
+      span.modal-close(onclick="handleModalCloseClick(event)") X
+      p To open this session in another browser, share this link:
+      a(id="share-modal-link", href="#") This is a link

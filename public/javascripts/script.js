@@ -34,6 +34,8 @@ var woundData = [
     ['3', '3', '3', '3', '3', '3',   '3',   '3',   '4',   '4'  ],       // 10
 ]
 
+var linkPrefix = "http://carranza:3000";
+
 function getCookie(name) {
     var cookieValue = "";
     var cookies = document.cookie.split(';');
@@ -764,12 +766,14 @@ function renderStatsGrid2(stats, minimal = false, addAdjuster = false) {
         <div class="grid-header">/</div>
         <div class="grid-header">F</div>
     `;
-    function adjuster(stat) {
+    function adjuster(stat, val) {
         if (!addAdjuster) return '';
+        const upButton = (val <= 99)? `<button stattype="${stat}" class="floating-stat-buttons floating-stat-button-increase">▲</button>` : '<span class="floating-stat-buttons"> </span>';
+        const downButton = (val > 0)? `<button stattype="${stat}" class="floating-stat-buttons floating-stat-button-decrease">▼</button>` : '<span class="floating-stat-buttons"> </span>';
         return `
             <div class="floating-stat-button-container">
-                <button stattype="${stat}" class="floating-stat-buttons floating-stat-button-increase">▲</button>
-                <button stattype="${stat}" class="floating-stat-buttons floating-stat-button-decrease">▼</button>
+                ${upButton}
+                ${downButton}
             </div>`;
     }
     //<div class="grid-item">${stats.might} / ${stats.will} / ${stats.fate}</div>
@@ -780,13 +784,13 @@ function renderStatsGrid2(stats, minimal = false, addAdjuster = false) {
         <div class="grid-item">${stats.strength}</div>
         <div class="grid-item">${stats.defence}</div>
         <div class="grid-item">${stats.attack}</div>
-        <div class="grid-item">${stats.wounds}${adjuster("wounds")}</div>
+        <div class="grid-item">${stats.wounds}${adjuster("wounds",stats.wounds)}</div>
         <div class="grid-item">${stats.courage}</div>
-        <div class="grid-item">${stats.might}${adjuster("might")}</div>
+        <div class="grid-item">${stats.might}${adjuster("might",stats.might)}</div>
         <div class="grid-item">/</div>
-        <div class="grid-item">${stats.will}${adjuster("will")}</div>
+        <div class="grid-item">${stats.will}${adjuster("will",stats.will)}</div>
         <div class="grid-item">/</div>
-        <div class="grid-item">${stats.fate}${adjuster("fate")}</div>
+        <div class="grid-item">${stats.fate}${adjuster("fate",stats.fate)}</div>
     </div>
    `;
 }
@@ -823,6 +827,28 @@ function showCurrentTab() {
 function handlePlayerTabClick(event, playerName) {
     const tabControl = event.target.parentElement.parentElement;
     activatePlayerTab(tabControl, playerName);
+}
+
+function handleShareButtonClick(event) {
+    saveState();
+    const cookie = getCookie('data');
+    console.log(`
+    Comparing JSON.stringify(state) to cookie value. 
+    JSON: ${JSON.stringify(state)}
+    cookie: ${cookie}`);
+    // Basically, state = JSON.parse(cookie). 
+    const b64 = btoa(encodeURIComponent(cookie));
+    // alert(`
+    //     <a href="${linkPrefix}/load/${b64}"> ${linkPrefix}/load/${b64} </a>
+    // `);
+    const link = `${linkPrefix}/load/${b64}`;
+    document.getElementById('share-modal-link').href = link;
+    document.getElementById('share-modal-link').innerHTML = link;
+    document.getElementById('share-modal').style.display = 'block';
+}
+
+function handleModalCloseClick(event) {
+    document.getElementById('share-modal').style.display = 'none';
 }
 
 function activatePlayerTab(eleTabControl, player) {
@@ -929,7 +955,6 @@ function establishCallbacks() {
         }
     });
 
-    
 }
 
 function loadState() {
@@ -940,7 +965,9 @@ function loadState() {
         return;
     }
     try {
+        console.log(`Attempting to parse cookie:\n${cookie}`);
         state = JSON.parse(cookie);
+        console.log(JSON.stringify(state));
     } catch {
         console.error('Failed to load state!');
         console.error(JSON.stringify(state));
