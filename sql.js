@@ -95,7 +95,7 @@ const initializeHeroes = `INSERT INTO Units (unitID, pts, name, melee, ranged, s
 ( 15, 25, "Eowyn",              4, 0, 3, 3, 1, 1, 5,    1, 1, 1, 0), 
 ( 16, 40, "Gamling",            4, 4, 4, 5, 2, 2, 4,    2, 1, 1, 0), 
 ( 17, 200, "Gandalf the White", 5, 0, 5, 6, 1, 3, 7,    3, 6, 3, 0), 
-( 20, 400, "Sauron",            9, 0, 8,10, 3, 5, 7,    3, 3, -1, 0), 
+( 20, 400, "Sauron",            9, 0, 8,10, 3, 5, 7,    3, 3, 0, 0), 
 ( 23, 150, "Saruman",           5, 0, 4, 5, 1, 3, 7,    3, 6, 3, 0), 
 ( 21, 40, "Orc Captain",        4, 5, 4, 4, 2, 2, 3,    2, 1, 1, 0), 
 ( 22, 35, "Moria Goblin Captain",3,5, 4, 4, 2, 2, 3,    2, 1, 1, 0), 
@@ -106,7 +106,7 @@ const initializeHeroes = `INSERT INTO Units (unitID, pts, name, melee, ranged, s
 const initializeModifiers = `INSERT INTO Modifiers (modifierID, name, pts, melee, ranged, strength, defence, attack, wounds, courage, might, will, fate, details, rangedstrength) VALUES
 (1, "Elven cloak", 10,          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Cannot be seen further than 6in when partially concealed", 0), 
 (2, "Horse", 10,                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0), 
-(3, "Hero Armor", 5,            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, "Adds 1 to defence.", 0), 
+(3, "Armor", 5,            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, "Adds 1 to defence.", 0), 
 (4, "Bow", 5,                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0), 
 (5, "Human Bow", 1,             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "24in range, 2S, half movement penalty.", 2), 
 (6, "Shield", 1,                0, 0, 0, 1, 0, 0, 0, 0, 0, 0, "Adds 1 to defence. provides shielding ability.", 0), 

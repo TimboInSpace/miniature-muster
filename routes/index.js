@@ -23,6 +23,12 @@ router.get('/new', function(req,res,next) {
   res.redirect('/');
 });
 
+router.get('/load/:cookiedata', function(req,res,next) {
+  const decoded = decodeURIComponent(atob(req.params.cookiedata));
+  res.cookie('data', decoded, { maxAge: 900000, httpOnly: false, samesite: 'none'});
+  res.redirect('/');
+});
+
 selectAllData();
 
 module.exports = router;

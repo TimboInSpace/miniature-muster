@@ -123,16 +123,16 @@ nav.header ul > * .line2::first-letter {
   vertical-align: top;
 }
 
-button, a, input[type=submit] {
+button, a, input[type=submit], .pseudobutton {
   transition: ease-in-out 0.2s;
 }
-button:hover:enabled, a:hover:enabled, input[type=submit]:hover:enabled {
+button:hover:enabled, a:hover:enabled, input[type=submit]:hover:enabled, .pseudobutton:hover:enabled {
   text-shadow: 0px 0px 1px whitesmoke;
   box-shadow: 0px 0px 10px #2B8FF3 inset;
   text-decoration: underline;
   cursor: pointer;
 }
-button:disabled, a:disabled, input[type=submit]:disabled {
+button:disabled, a:disabled, input[type=submit]:disabled, .pseudobutton:disabled {
   color: #aaa;
   border: 3px solid #aaa;
 }
@@ -454,6 +454,10 @@ footer {
   padding: 0.5rem;
   text-align: center;
 }
+.tab-overlay-container .tab-overlay.unit-comparison:hover {
+  box-shadow: 0px 0px 20px #2B8FF3 inset;
+  cursor: pointer;
+}
 .tab-overlay-container .tab-overlay.unit-comparison span {
   display: inline-block;
   font-size: 3rem;
@@ -558,6 +562,9 @@ footer {
   position: absolute;
   z-index: 1;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  transform: scale(1.25) translate(65%, -80%);
 }
 .floating-stat-button-container .floating-stat-buttons {
   line-height: 1rem;
@@ -576,6 +583,46 @@ footer {
 }
 .floating-stat-button-container .floating-stat-buttons.floating-stat-button-decrease {
   bottom: 1rem;
+}
+
+.modal, #share-modal {
+  display: none;
+  position: fixed;
+  font-family: "Courier New", Courier, monospace;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: transparent;
+  z-index: 5;
+  width: 100vw;
+  height: 100vh;
+  /* Style for the close button */
+}
+.modal a, #share-modal a {
+  text-decoration: underline;
+  cursor: pointer;
+  word-wrap: anywhere;
+}
+.modal .modal-content, #share-modal .modal-content {
+  width: 80%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  height: 80%;
+  max-height: 40vh;
+  background-color: #222;
+  border: 3px solid #888;
+  border-radius: 0.5rem;
+  text-overflow: ellipsis;
+  overflow-y: scroll;
+  transform: translate(0, 50%);
+}
+.modal .modal-close, #share-modal .modal-close {
+  color: #888;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 /*# sourceMappingURL=style.css.map */
