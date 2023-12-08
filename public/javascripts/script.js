@@ -352,17 +352,22 @@ function handleUnitComparisonListClick(event,idx,player) {
         console.error(`Couldn't find the ancestor pane element for the list click event`); 
     }
     // Refresh each floating-stat-buttons. Clear the old event handler and set a new one
-    const statButtons = document.querySelectorAll('.floating-stat-buttons');
+    // Find only the floating-stat-buttons in this pane
+    const statButtons = pane.querySelectorAll('.floating-stat-buttons');
     statButtons.forEach( btn => {
-        try {
-            btn.removeEventListener('click');
-        } catch {
-            //console.info(`Stat button did not have click event to remove.`);
-        }
-        btn.addEventListener('click', (event, stat) => {
-            handleStatAdjust(event, stat, unit);
+        // Replace the element to wipe it's previous event listeners
+        const newbtn = replaceElement(btn);
+        // Add the new event listener
+        newbtn.addEventListener('click', function(event) {
+            handleStatAdjust(event, unit);
         });
     });
+}
+
+function replaceElement(originalElement) {
+    const clonedElement = originalElement.cloneNode(true);
+    originalElement.parentNode.replaceChild(clonedElement, originalElement);
+    return clonedElement;
 }
 
 function renderUnitCompareDetails(totalStats, modslist, parentEle) {
@@ -394,7 +399,7 @@ function renderUnitCompareDetails(totalStats, modslist, parentEle) {
     }
 }
 
-function handleStatAdjust(event, statType, unitRef) {
+function handleStatAdjust(event, unitRef) {
     // When the unit is clicked, each floating-stat-button should have its click event reset, then this code runs
 
     const stat = event.target.getAttribute('stattype');
@@ -965,13 +970,11 @@ function loadState() {
         return;
     }
     try {
-        console.log(`Attempting to parse cookie:\n${cookie}`);
         state = JSON.parse(cookie);
-        console.log(JSON.stringify(state));
     } catch {
-        console.error('Failed to load state!');
-        console.error(JSON.stringify(state));
-        console.error(`From cookie: \n${cookie}`);
+        console.error(`Failed to load state. 
+            This is the state that was loaded:\n${JSON.stringify(state)}\n
+            This is the cookie it was loaded from:\n${cookie}`);
     }
     
 }
