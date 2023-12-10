@@ -34,7 +34,7 @@ var woundData = [
     ['3', '3', '3', '3', '3', '3',   '3',   '3',   '4',   '4'  ],       // 10
 ]
 
-var linkPrefix = "http://carranza:3000";
+var linkPrefix = "https://lotr.timsullivan.online";
 
 function getCookie(name) {
     var cookieValue = "";
@@ -837,15 +837,12 @@ function handlePlayerTabClick(event, playerName) {
 function handleShareButtonClick(event) {
     saveState();
     const cookie = getCookie('data');
-    console.log(`
-    Comparing JSON.stringify(state) to cookie value. 
-    JSON: ${JSON.stringify(state)}
-    cookie: ${cookie}`);
+    // console.log(`
+    // Comparing JSON.stringify(state) to cookie value. 
+    // JSON: ${JSON.stringify(state)}
+    // cookie: ${cookie}`);
     // Basically, state = JSON.parse(cookie). 
     const b64 = btoa(encodeURIComponent(cookie));
-    // alert(`
-    //     <a href="${linkPrefix}/load/${b64}"> ${linkPrefix}/load/${b64} </a>
-    // `);
     const link = `${linkPrefix}/load/${b64}`;
     document.getElementById('share-modal-link').href = link;
     document.getElementById('share-modal-link').innerHTML = link;
@@ -1000,6 +997,7 @@ function addPlayer(txt) {
     renderStep();
 }
 
+console.log(`THE HOST_URI IS: ${hosturi}`)
 
 const tabcontainer = document.querySelector('.tab-container');
 const numTabs = tabcontainer.querySelectorAll('.tab').length;

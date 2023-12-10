@@ -2,9 +2,11 @@ var express = require('express');
 const app = require('../app');
 var router = express.Router();
 const queries = require('../sql.js');
-const connection = require('../database.js').getConnection();
+const connection = require('../sqlite-db.js').getConnection();
 
 var allunits, allmodifiers, allunitmodifiers, allunitswithmodifiers;
+
+var hosturi = process.env.HOST_URI || "https://lotr.timsullivan.online";
 
 async function selectAllData() {
   allunits = await connection.selectQuery(queries.selectAllUnits);
@@ -15,7 +17,7 @@ async function selectAllData() {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Miniature Muster', allunits, allmodifiers, allunitmodifiers, allunitswithmodifiers });
+  res.render('index', { title: 'Miniature Muster', allunits, allmodifiers, allunitmodifiers, allunitswithmodifiers, hosturi });
 });
 
 router.get('/new', function(req,res,next) {

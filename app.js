@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 // Connect to the database
-const connection = require('./database.js').getConnection();
+const connection = require('./sqlite-db.js').getConnection();
 app.locals.db = connection;
 app.locals.test = "test";
 app.locals.allunits = app.locals.db.getData();
@@ -42,5 +42,10 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+// Print Node.js version, npm version
+const { execSync } = require('child_process');
+const npmVersion = execSync('npm -v').toString().trim();
+console.info(`miniature-muster is running using node ${process.version} and npm ${npmVersion}`);
 
 module.exports = app;
