@@ -1,14 +1,14 @@
 const mysql = require('mysql2/promise');
 
+class MySqlDatabase {
 
-class DbConnection {
   constructor() {
-    if (DbConnection.instance) {
-      return DbConnection.instance;
+    if (MySqlDatabase.instance) {
+      return MySqlDatabase.instance;
     }
 
     this.connection = null;
-    DbConnection.instance = this;
+    MySqlDatabase.instance = this;
   }
 
   async connect(config) {
@@ -16,7 +16,6 @@ class DbConnection {
       this.connection = await mysql.createConnection(config);
       console.log('Connected to MySQL!');
     }
-
     return this.connection;
   }
 
@@ -67,3 +66,4 @@ class DbConnection {
 
 // Uncomment the line below to run the example
 // exampleUsage();
+module.exports = { MySqlDatabase };

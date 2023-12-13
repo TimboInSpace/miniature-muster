@@ -5,11 +5,11 @@ const initialSerialNumber = 1000000;
 const createTableParams = `
 CREATE TABLE Params (
     paramID INTEGER PRIMARY KEY,
-    key TEXT UNIQUE,
-    val TEXT
+    param_key TEXT UNIQUE,
+    param_val TEXT
 );`;
 
-const initializeParams = `INSERT INTO Params (key,val) VALUES 
+const initializeParams = `INSERT INTO Params (param_key,param_val) VALUES 
     ("dbVersion", ${dbVersion}), 
     ("nextSerialNumber", ${initialSerialNumber})
 `;
@@ -37,8 +37,8 @@ CREATE TABLE Modifiers (
     modifierID INTEGER PRIMARY KEY, 
     pts INTEGER DEFAULT 0, 
     name TEXT, 
-    melee DEFAULT 0, 
-    ranged  DEFAULT 0, 
+    melee INTEGER DEFAULT 0, 
+    ranged INTEGER DEFAULT 0, 
     strength INTEGER DEFAULT 0, 
     defence INTEGER DEFAULT 0, 
     attack INTEGER DEFAULT 0, 

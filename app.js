@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+
 var indexRouter = require('./routes/index');
 
 var app = express();
@@ -20,12 +21,40 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 
-// Connect to the database
-const connection = require('./sqlite-db.js').getConnection();
-app.locals.db = connection;
-app.locals.test = "test";
-app.locals.allunits = app.locals.db.getData();
+// Load the .env file if it exists.
+if (require('fs').existsSync('.env')) {
+  require('dotenv').config(); // Load the .env file. The contents will be in process.env.[varname]
+}
 
+if (process.env.DB_TYPE && process.env.DB_TYPE === 'mysql') {
+  // Use MySQL
+  const { MySqlDatabase } = require('./mysql-db.js');
+  const db = new MySqlDatabase();
+  async function testSql() {
+    var connection = await db.connect({
+      host: process.env.MYSQL_HOST,
+      port: process.env.MYSQL_PORT || 3306,
+      user: process.env.MYSQL_APP_USER,
+      password: process.env.MYSQL_APP_PASS,
+      database: process.env.MYSQL_DATABASE
+    });
+    try {
+      const result = await db.query('SELECT * FROM Params');
+      console.log('Query result:', result);
+    } catch (error) {
+      console.error('Error executing query:', error);
+    }
+  }
+  testSql();
+  app.locals.db = db;
+}
+if (process.env.DB_TYPE && (process.env.DB_TYPE === 'sqlite' || process.env.DB_TYPE === 'sqlite3')) {
+  var connection = require('./sqlite-db.js').getConnection();
+  app.locals.db = connection;
+}
+
+
+// app.locals.allunits = app.locals.db.getData();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
