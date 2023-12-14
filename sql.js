@@ -78,7 +78,8 @@ const initializeUnits = `INSERT INTO Units (unitID, pts, name, melee, ranged, st
 (27, 5, "Orc Warrior",          3, 5, 3, 4, 1, 1, 2, 0),
 (28, 10,"Uruk-Hai Warrior",     4, 4, 4, 5, 1, 1, 3, 0),
 (29, 15,"Uruk-Hai Berserker",   4, 0, 4, 6, 2, 1, 8, 0),
-(30, 70,"Cave Troll",           6, 6, 6, 6, 3, 3, 3, 0)
+(30, 70,"Cave Troll",           6, 6, 6, 6, 3, 3, 3, 0),
+(31, 85,"Isengard Troll",       7, 0, 7, 7, 3, 3, 4, 0)
 `;
 
 const initializeHeroes = `INSERT INTO Units (unitID, pts, name, melee, ranged, strength, defence, attack, wounds, courage, might, will, fate, rangedstrength) VALUES
@@ -100,7 +101,8 @@ const initializeHeroes = `INSERT INTO Units (unitID, pts, name, melee, ranged, s
 ( 21, 40, "Orc Captain",        4, 5, 4, 4, 2, 2, 3,    2, 1, 1, 0), 
 ( 22, 35, "Moria Goblin Captain",3,5, 4, 4, 2, 2, 3,    2, 1, 1, 0), 
 ( 24, 50, "Uruk-Hai Captain",   5, 4, 4, 5, 2, 2, 4,    2, 1, 1, 0), 
-( 25, 0, "Gollum",              4, 0, 4, 4, 2, 2, 4,    1, 0, 1, 0)
+( 25, 0, "Gollum",              4, 0, 4, 4, 2, 2, 4,    1, 0, 1, 0), 
+( 32, 80, "Unicorn",            5, 0, 4, 5, 1, 2, 6,    0, 3, 3, 0)
 `;
 
 const initializeModifiers = `INSERT INTO Modifiers (modifierID, name, pts, melee, ranged, strength, defence, attack, wounds, courage, might, will, fate, details, rangedstrength) VALUES
@@ -131,7 +133,8 @@ const initializeModifiers = `INSERT INTO Modifiers (modifierID, name, pts, melee
 (25, "Pike", 1,                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Can attack through two units.", 0), 
 (26, "Spear", 5,                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Can attack through a melee attacker.", 0), 
 (27, "Troll chain", 5,          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "After winning a fight, roll D6. if D6 gt enemy fight or D6 = 6, roll for one extra wound.", 0),
-(28, "Crossbow", 1,             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "24in range, 4S, FULL movement penalty.", 4)
+(28, "Crossbow", 1,             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "24in range, 4S, FULL movement penalty.", 4), 
+(29, "War Drum", 5,             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Everone around the drum moves faster", 0)
 `;
 
 const initializeUnitModifiers = `INSERT INTO UnitModifiers (unitID, modifierID) VALUES 
@@ -153,8 +156,8 @@ const initializeUnitModifiers = `INSERT INTO UnitModifiers (unitID, modifierID) 
 (26, 24), (26, 11), (26, 6), 
 (27, 24), (27, 11), (27, 6), 
 (28, 11), (28, 28), (28, 25), (28, 6), 
-(30, 26), (30, 27)
-
+(30, 26), (30, 27), 
+(31,29), (31,16)
 `;
 
 const selectAllUnits = `SELECT * FROM Units;`;

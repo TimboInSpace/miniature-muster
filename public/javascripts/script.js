@@ -140,6 +140,20 @@ function renderStep() {
     }
 }
 
+function getUnitByID(unitID) {
+    const foundID = units.find( u => { return u.unitID === unitID});
+    if (foundID) return foundID;
+    console.error('Failed to look up unit by ID: '+unitID);
+    return null;
+}
+
+function getModByID(modifierID) {
+    const foundID = modifiers.find( m => { return m.modifierID === modifierID});
+    if (foundID) return foundID;
+    console.error('Failed to look up modifier by ID: '+modifierID);
+    return null;
+}
+
 // Make a tab-control with a tab for each player, to display the army
 // ele is the div that contains the tab-labels and the tab-container.
 // each page is a tab-content
@@ -158,11 +172,14 @@ function renderArmyDisplay(ele) {
         let tabContentListHTML = '';
         let totalPoints = 0;
         army.units.forEach((unit, idx)=> {
+            const thisUnit = getUnitByID(unit.unitID);
+            // army.units is an array of objects: [{ unitID: unitID, mods: modifierIDs[], quantity}, ...]
             // Collect the HTML for the modifiers
             let unitModsHTML = '';
-            let pointCost = unit.unit.pts;
+            let pointCost = thisUnit.pts;
             if (unit.mods) {
-                unit.mods.forEach(mod => {
+                unit.mods.forEach(modID => {
+                    const mod = getModByID(modID);
                     unitModsHTML += `
                         <div class="unit-mod-display">
                             <span>${mod.name} (+${mod.pts})</span>
@@ -170,7 +187,10 @@ function renderArmyDisplay(ele) {
                         </div>
                     `;
                 });
-                pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
+                pointCost += unit.mods.reduce((acc,cur)=>{
+                    const mod = getModByID(cur);
+                    return acc + mod.pts;
+                },0);
             }
             tabContentListHTML += `
                 <li class="unit-list-item" unitindex="${idx}">
@@ -178,11 +198,11 @@ function renderArmyDisplay(ele) {
                         <div>
                             <div class="flex-row unit-list-item-header">
                                 <span>${unit.quantity}x </span>
-                                <span style="flex-grow: 1;"><b>${unit.unit.name}</b></span>
+                                <span style="flex-grow: 1;"><b>${thisUnit.name}</b></span>
                                 <span>${pointCost} Pts</span>
                                 <button class="remove-unit-button" onclick="handleRemoveUnitButtonClick(event, '${army.player}')"> X </button>
                             </div>
-                            ${renderStatsGrid2(unit.unit)}
+                            ${renderStatsGrid2(thisUnit)}
                             <div class="flex-col">${unitModsHTML}</div>
                         </div>
                     </div>
@@ -231,9 +251,10 @@ function renderArmyComparisonList(ele) {
         let tabContentListHTML = '';
         let totalPoints = 0;
         army.units.forEach((unit, idx)=> {
+            const thisUnit = getUnitByID(unit.unitID);
             // Collect the HTML for the modifiers
             let unitModsHTML = '';
-            let pointCost = unit.unit.pts;
+            let pointCost = thisUnit.pts;
             if (unit.mods) {
                 // unit.mods.forEach(mod => {
                 //     unitModsHTML += `
@@ -243,14 +264,17 @@ function renderArmyComparisonList(ele) {
                 //         </div>
                 //     `;
                 // });
-                pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
+                pointCost += unit.mods.reduce((acc,cur)=>{
+                    const mod = getModByID(cur);
+                    return acc + mod.pts;
+                },0);
             }
             tabContentListHTML += `
                 <li class="unit-list-item" unitindex="${idx}" onclick="handleUnitComparisonListClick(event,${idx},'${army.player}')">
                     <div class="flex-row">
-                        <span class="unit-list-item-header"><b>${unit.unit.name}</b></span>
+                        <span class="unit-list-item-header"><b>${thisUnit.name}</b></span>
                         <div class="stats-grid-container inline">
-                            ${renderStatsGrid2(unit.unit, true)}
+                            ${renderStatsGrid2(thisUnit, true)}
                         </div>
                     </div>
                     <div class="flex-col">${unitModsHTML}</div>
@@ -300,15 +324,16 @@ function renderArmyComparisonList(ele) {
 }
 
 function handleUnitComparisonListClick(event,idx,player) {
-    // TODO: Swap this out for a lookup of the unit ID from the Units array
+    // look up the unit by its unitID in the units array
     const unit = state.armies.find(a => a.player === player)?.units[idx];
     if (!unit) {
         console.error(`attempted to look up invalid unit with index ${idx} and player ${player}`);
         return;
     }
     const totalStats = statsWithMods(unit);
-    // Get a reference to the container holding all the controls that display details on the unit
-    
+    console.log(`totalStats: \n${JSON.stringify(totalStats)}`);
+    const thisUnit = getUnitByID(unit.unitID);
+
     // Highlight the clicked item
     const unitCompareList = findParent(event.target, '.unit-list');
     if (unitCompareList) {
@@ -337,7 +362,7 @@ function handleUnitComparisonListClick(event,idx,player) {
         const i = Array.from(pane.parentNode.children).indexOf(pane);
         const selectedListItem = unitCompareList.querySelector('li.active');
         displayState[`pane-${i}`] = {
-            unitID: unit.unit.unitID,
+            unitID: thisUnit.unitID,
             clickedStrength: totalStats.strength,
             clickedDefence: totalStats.defence,
             clickedFight: totalStats.melee,
@@ -386,14 +411,15 @@ function renderUnitCompareDetails(totalStats, modslist, parentEle) {
         }
         const unitMods = unitCompareDetails.querySelector('.unit-modifiers');
         if (unitMods) {
-            unitMods.innerHTML = modslist.reduce( (acc, mod) => {
+            unitMods.innerHTML = modslist.reduce( (acc, modID) => {
+                const mod = getModByID(modID);
                 const html = `
                 <div class="unit-mod-display">
                     <span>${mod.name} (+${mod.pts})</span>
                     <span><em>${mod.details}</em></span>
                 </div>
                 `;
-                return acc + html
+                return acc + html;
             }, '');
         }
     }
@@ -548,12 +574,19 @@ function handleComparisonRoleToggle(event) {
 }
 
 function statsWithMods(unit) {
-    // TODO: Look up each mod by a modifierID instead of the mod itself by doing a .map() call
-    // Then sum up each stat using a .reduce() call
-    const statsObj = {name: unit.unit.name};
+    console.log(JSON.stringify(unit));
+    // "unit" is an object like this: {unitID, mods, quantity}
+    const thisUnit = getUnitByID(unit.unitID);
+    // Initialize the stats object
+    const statsObj = {name: thisUnit.name};
+    // For each stat, sum the base stat with any modifiers' stats.
     const vars = ['melee', 'ranged', 'strength', 'defence', 'attack', 'wounds', 'courage', 'might', 'will', 'fate', 'pts', 'rangedstrength'];
     vars.forEach( stat => {
-        statsObj[stat] = unit.unit[stat] + unit.mods.reduce((acc,cur)=>{return acc + cur[stat]},0);
+        // Then sum up each stat using a .reduce() call
+        statsObj[stat] = thisUnit[stat] + unit.mods.reduce((acc,cur)=>{
+            const mod = getModByID(cur);
+            return acc + mod[stat];
+        },0);
     });
     return statsObj;
 }
@@ -735,26 +768,26 @@ function renderSelectedUnitDetails(tgt) {
     updateShownScore();
 }
 
-function renderStatsGrid(statsGridEle, stats) {
-    // Update an existing stats grid
-    const gridItems = statsGridEle.children;
-    if (gridItems.length != 22) { 
-        console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); 
-        console.error(gridItems);
-        return;
-    }
-    gridItems[7].innerHTML = stats.ranged > 0 ? `${stats.melee} / ${stats.ranged}+` : `${stats.melee} / -`;
-    gridItems[8].innerHTML =  `${stats.strength}`;
-    gridItems[9].innerHTML =  `${stats.defence}`;
-    gridItems[10].innerHTML = `${stats.attack}`;
-    gridItems[11].innerHTML = `${stats.wounds}`;
-    gridItems[12].innerHTML = `${stats.courage}`;
-    gridItems[13].innerHTML = `${stats.might}`;
-    gridItems[14].innerHTML = `/`;
-    gridItems[15].innerHTML = `${stats.will}`;
-    gridItems[16].innerHTML = `/`;
-    gridItems[17].innerHTML = `${stats.fate}`;
-}
+// function renderStatsGrid(statsGridEle, stats) {
+//     // Update an existing stats grid
+//     const gridItems = statsGridEle.children;
+//     if (gridItems.length != 22) { 
+//         console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); 
+//         console.error(gridItems);
+//         return;
+//     }
+//     gridItems[7].innerHTML = stats.ranged > 0 ? `${stats.melee} / ${stats.ranged}+` : `${stats.melee} / -`;
+//     gridItems[8].innerHTML =  `${stats.strength}`;
+//     gridItems[9].innerHTML =  `${stats.defence}`;
+//     gridItems[10].innerHTML = `${stats.attack}`;
+//     gridItems[11].innerHTML = `${stats.wounds}`;
+//     gridItems[12].innerHTML = `${stats.courage}`;
+//     gridItems[13].innerHTML = `${stats.might}`;
+//     gridItems[14].innerHTML = `/`;
+//     gridItems[15].innerHTML = `${stats.will}`;
+//     gridItems[16].innerHTML = `/`;
+//     gridItems[17].innerHTML = `${stats.fate}`;
+// }
 
 function renderStatsGrid2(stats, minimal = false, addAdjuster = false) {
     //<div class="grid-header">M / W / F</div>
@@ -926,7 +959,7 @@ function establishCallbacks() {
             if (typeof x !== 'number') {return false}
             return x > 0 && Number.isInteger(x);
         }
-        // Fix deletion bug
+        // Validate the inputs before processing:
         if (displayState.hasOwnProperty('unitSelectionSelectedUnit') && displayState.unitSelectionSelectedUnit && displayState.selectionQuantity && isPositiveWholeNumber(parseInt(displayState.selectionQuantity))) {
             // Add the selected unit to the data/cookie, and refresh the page
             if (!state.hasOwnProperty('armies')) {
@@ -940,14 +973,13 @@ function establishCallbacks() {
             if (!playerArmy) {
                 playerArmy = {
                     player: playerName,
-                    units: [] // an array of {unit, mods[], quantity}
+                    units: [] // an array of {unitID, modIDs[], quantity}
                 };
                 state.armies.push(playerArmy);
             }
-            // Add the unit into the army
             playerArmy.units.push({
-                unit: displayState.unitSelectionSelectedUnit,
-                mods: (displayState.unitSelectionSelectedMods) ? displayState.unitSelectionSelectedMods : [],
+                unitID: displayState.unitSelectionSelectedUnit.unitID,
+                mods: (displayState.unitSelectionSelectedMods) ? displayState.unitSelectionSelectedMods.map( mod => {return mod.modifierID || null}) : [],
                 quantity: parseInt(displayState.selectionQuantity)
             });
             saveState();
