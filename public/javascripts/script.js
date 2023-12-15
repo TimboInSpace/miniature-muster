@@ -36,6 +36,8 @@ var woundData = [
 
 var linkPrefix = "https://lotr.timsullivan.online";
 
+var units, modifiers, unitmodifiers, unitswithmodifiers;
+
 function getCookie(name) {
     var cookieValue = "";
     var cookies = document.cookie.split(';');
@@ -331,7 +333,6 @@ function handleUnitComparisonListClick(event,idx,player) {
         return;
     }
     const totalStats = statsWithMods(unit);
-    console.log(`totalStats: \n${JSON.stringify(totalStats)}`);
     const thisUnit = getUnitByID(unit.unitID);
 
     // Highlight the clicked item
@@ -574,7 +575,6 @@ function handleComparisonRoleToggle(event) {
 }
 
 function statsWithMods(unit) {
-    console.log(JSON.stringify(unit));
     // "unit" is an object like this: {unitID, mods, quantity}
     const thisUnit = getUnitByID(unit.unitID);
     // Initialize the stats object
@@ -768,27 +768,6 @@ function renderSelectedUnitDetails(tgt) {
     updateShownScore();
 }
 
-// function renderStatsGrid(statsGridEle, stats) {
-//     // Update an existing stats grid
-//     const gridItems = statsGridEle.children;
-//     if (gridItems.length != 22) { 
-//         console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); 
-//         console.error(gridItems);
-//         return;
-//     }
-//     gridItems[7].innerHTML = stats.ranged > 0 ? `${stats.melee} / ${stats.ranged}+` : `${stats.melee} / -`;
-//     gridItems[8].innerHTML =  `${stats.strength}`;
-//     gridItems[9].innerHTML =  `${stats.defence}`;
-//     gridItems[10].innerHTML = `${stats.attack}`;
-//     gridItems[11].innerHTML = `${stats.wounds}`;
-//     gridItems[12].innerHTML = `${stats.courage}`;
-//     gridItems[13].innerHTML = `${stats.might}`;
-//     gridItems[14].innerHTML = `/`;
-//     gridItems[15].innerHTML = `${stats.will}`;
-//     gridItems[16].innerHTML = `/`;
-//     gridItems[17].innerHTML = `${stats.fate}`;
-// }
-
 function renderStatsGrid2(stats, minimal = false, addAdjuster = false) {
     //<div class="grid-header">M / W / F</div>
     const header = minimal ? '' : `
@@ -849,10 +828,11 @@ function renderSelectionList(selectionEle, arrKeys, arrValues, showNum = 1) {
     selectionEle.innerHTML = html;
 }
 
-function showCurrentTab() {
+async function showCurrentTab() {
     const tabcontainer = document.querySelector('.tab-container');
     if (!tabcontainer) return;
     const tabs = tabcontainer.querySelectorAll('.tab');
+    await asyncLoadJSON();
     loadState();
     if (state.step > tabs.length) { console.error('Tried to select a nonexistent tab'); return; }
     tabs.forEach((tab) => {
@@ -1012,6 +992,52 @@ function saveState() {
     setCookie('data',JSON.stringify(state));
 }
 
+function loadJSON() {
+    return new Promise(function (resolve, reject) {
+        // Create a new XMLHttpRequest object, to get the JSON from /database.json
+        var xhr = new XMLHttpRequest();
+        // Specify the request method and URL
+        xhr.open('GET', '/database.json', true);
+        // Set the callback function to handle the response
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    try {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        resolve(jsonResponse);
+                    } catch (error) {
+                        reject('Error parsing JSON: ' + error.message);
+                    }
+                } else {
+                    reject('Error loading /database.json. Status code: ' + xhr.status);
+                }
+            }
+        };
+        // Send the request
+        xhr.send();
+    });
+}
+
+async function asyncLoadJSON() {
+    if (!units || !modifiers || !unitmodifiers || !unitswithmodifiers) {
+        try {
+            const data = await loadJSON();
+            // Now, 'data' contains the parsed JSON object from '/database.json'
+            if (data.hasOwnProperty('units') 
+            && data.hasOwnProperty('modifiers') 
+            && data.hasOwnProperty('unitmodifiers') 
+            && data.hasOwnProperty('unitswithmodifiers')) {
+                units = data.units;
+                modifiers = data.modifiers;
+                unitmodifiers = data.unitmodifiers;
+                unitswithmodifiers = data.unitswithmodifiers;
+            }   
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
 function addPlayer(txt) {
     // Check that txt is a nonempty string of only letters
     const regex = /[a-zA-Z]+/;
@@ -1031,9 +1057,31 @@ function addPlayer(txt) {
 
 console.log(`THE HOST_URI IS: ${hosturi}`)
 
+// // If units, modifiers, unitmodifiers, or unitswithmodifiers are null, attempt to load the data from JSON.
+// if (!units || !modifiers || !unitmodifiers || !unitswithmodifiers) {
+//     console.log(`Attempting to load data from JSON (instead of from a database)`);
+//     loadJSON(function (err,data) {
+//         if (err) {
+//             console.error(err);
+//         } else {
+//             // Now, 'data' contains the parsed JSON object from '/database.json'
+//             if (data.hasOwnProperty('units') 
+//                 && data.hasOwnProperty('modifiers') 
+//                 && data.hasOwnProperty('unitmodifiers') 
+//                 && data.hasOwnProperty('unitswithmodifiers')) {
+//                 units = data.units;
+//                 modifiers = data.modifiers;
+//                 unitmodifiers = data.unitmodifiers;
+//                 unitswithmodifiers = data.unitswithmodifiers;
+//             }
+//         }
+//     });
+//     await asyncLoadJSON();
+// }
+
 const tabcontainer = document.querySelector('.tab-container');
 const numTabs = tabcontainer.querySelectorAll('.tab').length;
-
+asyncLoadJSON();
 var state;
 var displayState = {};
 showCurrentTab();
