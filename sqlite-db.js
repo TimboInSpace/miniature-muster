@@ -31,7 +31,7 @@ class DbConnection {
         // or if key="dbVersion" is not found in Params,
         // or if the dbVersion it found is older than the one from sql.js
         return new Promise((resolve, reject) => {
-            this.db.get('SELECT val from Params WHERE key = "dbVersion"', [], (err,row) => {
+            this.db.get('SELECT param_val from Params WHERE param_key = "dbVersion"', [], (err,row) => {
                 if (err) {
                     console.log(err);
                     resolve(true);

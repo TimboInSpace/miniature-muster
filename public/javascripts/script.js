@@ -8,10 +8,10 @@ the state / 'data' cookie ends up holding a structure like this:
             player: "Tim"
             units: [
                 {
-                    unit: ##unit##
+                    unit: ##unitID##
                     quantity: 3,
                     mods: [
-                        ##MOD##
+                        ##modID##
                     ]
                 }
             ]
@@ -32,9 +32,19 @@ var woundData = [
     ['3', '3', '3', '3', '3', '3',   '4',   '4',   '5',   '5'  ],       // 8
     ['3', '3', '3', '3', '3', '3',   '3',   '4',   '4',   '5'  ],       // 9
     ['3', '3', '3', '3', '3', '3',   '3',   '3',   '4',   '4'  ],       // 10
+];
+
+// To save space within the cookie, all units' stats are stored in an array on that unit.
+// i.e. armies.find( a => a.player === playerName).units[i].stats = [array, of, stats, of, this, unit]
+// The stats should appear in this sequence.
+var statNames = [
+    "melee", "ranged", "strength", "defence", "attack",
+    "wounds", "courage", "might", "will", "fate", "rangedstrength"
 ]
 
 var linkPrefix = "https://lotr.timsullivan.online";
+
+var units, modifiers, unitmodifiers, unitswithmodifiers;
 
 function getCookie(name) {
     var cookieValue = "";
@@ -140,6 +150,20 @@ function renderStep() {
     }
 }
 
+function getUnitByID(unitID) {
+    const foundID = units.find( u => { return u.unitID === unitID});
+    if (foundID) return foundID;
+    console.error('Failed to look up unit by ID: '+unitID);
+    return null;
+}
+
+function getModByID(modifierID) {
+    const foundID = modifiers.find( m => { return m.modifierID === modifierID});
+    if (foundID) return foundID;
+    console.error('Failed to look up modifier by ID: '+modifierID);
+    return null;
+}
+
 // Make a tab-control with a tab for each player, to display the army
 // ele is the div that contains the tab-labels and the tab-container.
 // each page is a tab-content
@@ -158,11 +182,14 @@ function renderArmyDisplay(ele) {
         let tabContentListHTML = '';
         let totalPoints = 0;
         army.units.forEach((unit, idx)=> {
+            const thisUnit = getUnitByID(unit.unitID);
+            // army.units is an array of objects: [{ unitID: unitID, mods: modifierIDs[], quantity}, ...]
             // Collect the HTML for the modifiers
             let unitModsHTML = '';
-            let pointCost = unit.unit.pts;
+            let pointCost = thisUnit.pts;
             if (unit.mods) {
-                unit.mods.forEach(mod => {
+                unit.mods.forEach(modID => {
+                    const mod = getModByID(modID);
                     unitModsHTML += `
                         <div class="unit-mod-display">
                             <span>${mod.name} (+${mod.pts})</span>
@@ -170,7 +197,10 @@ function renderArmyDisplay(ele) {
                         </div>
                     `;
                 });
-                pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
+                pointCost += unit.mods.reduce((acc,cur)=>{
+                    const mod = getModByID(cur);
+                    return acc + mod.pts;
+                },0);
             }
             tabContentListHTML += `
                 <li class="unit-list-item" unitindex="${idx}">
@@ -178,11 +208,11 @@ function renderArmyDisplay(ele) {
                         <div>
                             <div class="flex-row unit-list-item-header">
                                 <span>${unit.quantity}x </span>
-                                <span style="flex-grow: 1;"><b>${unit.unit.name}</b></span>
+                                <span style="flex-grow: 1;"><b>${thisUnit.name}</b></span>
                                 <span>${pointCost} Pts</span>
                                 <button class="remove-unit-button" onclick="handleRemoveUnitButtonClick(event, '${army.player}')"> X </button>
                             </div>
-                            ${renderStatsGrid2(unit.unit)}
+                            ${renderStatsGrid2(thisUnit)}
                             <div class="flex-col">${unitModsHTML}</div>
                         </div>
                     </div>
@@ -231,26 +261,24 @@ function renderArmyComparisonList(ele) {
         let tabContentListHTML = '';
         let totalPoints = 0;
         army.units.forEach((unit, idx)=> {
+            const thisUnit = getUnitByID(unit.unitID);
             // Collect the HTML for the modifiers
             let unitModsHTML = '';
-            let pointCost = unit.unit.pts;
+            let pointCost = thisUnit.pts;
             if (unit.mods) {
-                // unit.mods.forEach(mod => {
-                //     unitModsHTML += `
-                //         <div class="unit-mod-display">
-                //             <span>${mod.name} (+${mod.pts})</span>
-                //             <span><em>${mod.details}</em></span>
-                //         </div>
-                //     `;
-                // });
-                pointCost += unit.mods.reduce((acc,cur)=>{return acc + cur.pts},0);
+                pointCost += unit.mods.reduce((acc,cur)=>{
+                    const mod = getModByID(cur);
+                    return acc + mod.pts;
+                },0);
             }
+            // Get the stats array for the unit. Turn the stats array into an obect, using the stat names as keys
+            const unitStatsObj = statsArrayToObject(unit.stats);
             tabContentListHTML += `
                 <li class="unit-list-item" unitindex="${idx}" onclick="handleUnitComparisonListClick(event,${idx},'${army.player}')">
                     <div class="flex-row">
-                        <span class="unit-list-item-header"><b>${unit.unit.name}</b></span>
+                        <span class="unit-list-item-header"><b>${thisUnit.name}</b></span>
                         <div class="stats-grid-container inline">
-                            ${renderStatsGrid2(unit.unit, true)}
+                            ${renderStatsGrid2(unitStatsObj, true)}
                         </div>
                     </div>
                     <div class="flex-col">${unitModsHTML}</div>
@@ -300,15 +328,15 @@ function renderArmyComparisonList(ele) {
 }
 
 function handleUnitComparisonListClick(event,idx,player) {
-    // TODO: Swap this out for a lookup of the unit ID from the Units array
+    // look up the unit by its unitID in the units array
     const unit = state.armies.find(a => a.player === player)?.units[idx];
     if (!unit) {
         console.error(`attempted to look up invalid unit with index ${idx} and player ${player}`);
         return;
     }
     const totalStats = statsWithMods(unit);
-    // Get a reference to the container holding all the controls that display details on the unit
-    
+    const thisUnit = getUnitByID(unit.unitID);
+
     // Highlight the clicked item
     const unitCompareList = findParent(event.target, '.unit-list');
     if (unitCompareList) {
@@ -328,7 +356,10 @@ function handleUnitComparisonListClick(event,idx,player) {
             console.error(`Attempted to highlight nonexistent child item of unit-list in Step 3: (index: ${idx})`);
         }
     }
-    renderUnitCompareDetails(totalStats, unit.mods, event.target);
+    const unitStatsObj = statsArrayToObject(unit.stats);
+    unitStatsObj['name'] = thisUnit.name;
+    unitStatsObj['pts'] = thisUnit.pts;
+    renderUnitCompareDetails(unitStatsObj, unit.mods, event.target);
     // update the displayState
     // But first, is this the left or the right pane?
     const pane = findParent(event.target, '.unit-compare-pane');
@@ -336,8 +367,9 @@ function handleUnitComparisonListClick(event,idx,player) {
         // i should be 0 for the left pane and 1 for the right pane
         const i = Array.from(pane.parentNode.children).indexOf(pane);
         const selectedListItem = unitCompareList.querySelector('li.active');
+        // Cache the selected item, so that it can be set to active later on. (see handleStatAdjust)
         displayState[`pane-${i}`] = {
-            unitID: unit.unit.unitID,
+            unitID: thisUnit.unitID,
             clickedStrength: totalStats.strength,
             clickedDefence: totalStats.defence,
             clickedFight: totalStats.melee,
@@ -386,14 +418,15 @@ function renderUnitCompareDetails(totalStats, modslist, parentEle) {
         }
         const unitMods = unitCompareDetails.querySelector('.unit-modifiers');
         if (unitMods) {
-            unitMods.innerHTML = modslist.reduce( (acc, mod) => {
+            unitMods.innerHTML = modslist.reduce( (acc, modID) => {
+                const mod = getModByID(modID);
                 const html = `
                 <div class="unit-mod-display">
                     <span>${mod.name} (+${mod.pts})</span>
                     <span><em>${mod.details}</em></span>
                 </div>
                 `;
-                return acc + html
+                return acc + html;
             }, '');
         }
     }
@@ -416,7 +449,8 @@ function handleStatAdjust(event, unitRef) {
 
     // Adjust the correct stat for the unit.
     // Note that doing this means the state has unsaved changes
-    unitRef.unit[stat] += change;
+    const statIndex = statNames.indexOf(stat.toLowerCase());
+    unitRef.stats[statIndex] += change;
     
     // Re-draw the details. Need to re-draw the unit comparison list, and re-draw the unit details.
     const panes = document.querySelectorAll('.unit-compare-pane');
@@ -432,20 +466,16 @@ function handleStatAdjust(event, unitRef) {
         
         // Using the list item cached in the display state, set that list item to active again
         if (displayState && displayState[`pane-${i}`] && displayState[`pane-${i}`]['selectedListItem'] && displayState[`pane-${i}`]['selectedPlayer']) {
+            // WHY ISNT THE RIGHT UNIT/PLAYER BEING ACTIVATED? iS IT NOT BEING CACHED???
             // Make sure the correct player tab is shown
             const player = displayState[`pane-${i}`]['selectedPlayer'];
             activatePlayerTab(tabCtl, player);
-            
             // Set the list item to be active again.
             const li = displayState[`pane-${i}`]['selectedListItem'];
-            //li.click();
-            //Get the unit index ?
             const idx = li.getAttribute('unitindex');
-            //const ele = li.querySelector('.unit-list-item-header');
-            //handleUnitComparisonListClick({target: ele}, idx, player);
-            // Problem: cant use li to set the target of the event. I need to look it up 
             const playerTab = tabCtl.querySelector(`.player-tab-content-${player}`);
             const ele = playerTab?.querySelector('.unit-list > *');
+            // Pretend to click the item. Create a fake "event" that just contains the 'target' attribute.
             if (ele) {
                 handleUnitComparisonListClick({target: ele}, idx, player);
             }
@@ -548,12 +578,18 @@ function handleComparisonRoleToggle(event) {
 }
 
 function statsWithMods(unit) {
-    // TODO: Look up each mod by a modifierID instead of the mod itself by doing a .map() call
-    // Then sum up each stat using a .reduce() call
-    const statsObj = {name: unit.unit.name};
+    // "unit" is an object like this: {unitID, mods, quantity}
+    const thisUnit = getUnitByID(unit.unitID);
+    // Initialize the stats object
+    const statsObj = {name: thisUnit.name};
+    // For each stat, sum the base stat with any modifiers' stats.
     const vars = ['melee', 'ranged', 'strength', 'defence', 'attack', 'wounds', 'courage', 'might', 'will', 'fate', 'pts', 'rangedstrength'];
     vars.forEach( stat => {
-        statsObj[stat] = unit.unit[stat] + unit.mods.reduce((acc,cur)=>{return acc + cur[stat]},0);
+        // Then sum up each stat using a .reduce() call
+        statsObj[stat] = thisUnit[stat] + unit.mods.reduce((acc,cur)=>{
+            const mod = getModByID(cur);
+            return acc + mod[stat];
+        },0);
     });
     return statsObj;
 }
@@ -735,27 +771,6 @@ function renderSelectedUnitDetails(tgt) {
     updateShownScore();
 }
 
-function renderStatsGrid(statsGridEle, stats) {
-    // Update an existing stats grid
-    const gridItems = statsGridEle.children;
-    if (gridItems.length != 22) { 
-        console.error('Stats grid has the wrong number of items. Check renderStatsGrid'); 
-        console.error(gridItems);
-        return;
-    }
-    gridItems[7].innerHTML = stats.ranged > 0 ? `${stats.melee} / ${stats.ranged}+` : `${stats.melee} / -`;
-    gridItems[8].innerHTML =  `${stats.strength}`;
-    gridItems[9].innerHTML =  `${stats.defence}`;
-    gridItems[10].innerHTML = `${stats.attack}`;
-    gridItems[11].innerHTML = `${stats.wounds}`;
-    gridItems[12].innerHTML = `${stats.courage}`;
-    gridItems[13].innerHTML = `${stats.might}`;
-    gridItems[14].innerHTML = `/`;
-    gridItems[15].innerHTML = `${stats.will}`;
-    gridItems[16].innerHTML = `/`;
-    gridItems[17].innerHTML = `${stats.fate}`;
-}
-
 function renderStatsGrid2(stats, minimal = false, addAdjuster = false) {
     //<div class="grid-header">M / W / F</div>
     const header = minimal ? '' : `
@@ -816,10 +831,20 @@ function renderSelectionList(selectionEle, arrKeys, arrValues, showNum = 1) {
     selectionEle.innerHTML = html;
 }
 
-function showCurrentTab() {
+function statsArrayToObject(arr) {
+    // Turn an array of stats into an object of stats.
+    const statsObj = {};
+    statNames.forEach( (statName, i) => {
+        statsObj[statName] = arr[i];
+    });
+    return statsObj;
+}
+
+async function showCurrentTab() {
     const tabcontainer = document.querySelector('.tab-container');
     if (!tabcontainer) return;
     const tabs = tabcontainer.querySelectorAll('.tab');
+    await asyncLoadJSON();
     loadState();
     if (state.step > tabs.length) { console.error('Tried to select a nonexistent tab'); return; }
     tabs.forEach((tab) => {
@@ -926,7 +951,7 @@ function establishCallbacks() {
             if (typeof x !== 'number') {return false}
             return x > 0 && Number.isInteger(x);
         }
-        // Fix deletion bug
+        // Validate the inputs before processing:
         if (displayState.hasOwnProperty('unitSelectionSelectedUnit') && displayState.unitSelectionSelectedUnit && displayState.selectionQuantity && isPositiveWholeNumber(parseInt(displayState.selectionQuantity))) {
             // Add the selected unit to the data/cookie, and refresh the page
             if (!state.hasOwnProperty('armies')) {
@@ -940,16 +965,26 @@ function establishCallbacks() {
             if (!playerArmy) {
                 playerArmy = {
                     player: playerName,
-                    units: [] // an array of {unit, mods[], quantity}
+                    units: [] // an array of {unitID, modIDs[], quantity}
                 };
                 state.armies.push(playerArmy);
             }
-            // Add the unit into the army
-            playerArmy.units.push({
-                unit: displayState.unitSelectionSelectedUnit,
-                mods: (displayState.unitSelectionSelectedMods) ? displayState.unitSelectionSelectedMods : [],
-                quantity: parseInt(displayState.selectionQuantity)
+            const unitData = {
+                unitID: displayState.unitSelectionSelectedUnit.unitID,
+                mods: (displayState.unitSelectionSelectedMods) ? displayState.unitSelectionSelectedMods.map( mod => {return mod.modifierID || null}) : [],
+                quantity: parseInt(displayState.selectionQuantity),
+                stats: []
+            };
+            // Add the stats for this unit, as an array.
+            const totalStats = statsWithMods(unitData);
+            Object.keys(totalStats).forEach( (statName) => {
+                if (statNames.includes(statName)) {
+                    const statVal = totalStats[statName];
+                    const statIdx = statNames.indexOf(statName);
+                    unitData.stats[statIdx] = statVal;
+                }
             });
+            playerArmy.units.push(unitData);
             saveState();
             const armyDisplayEle = document.getElementById('unitDisplayTabControl');
             renderArmyDisplay(armyDisplayEle);
@@ -980,6 +1015,52 @@ function saveState() {
     setCookie('data',JSON.stringify(state));
 }
 
+function loadJSON() {
+    return new Promise(function (resolve, reject) {
+        // Create a new XMLHttpRequest object, to get the JSON from /database.json
+        var xhr = new XMLHttpRequest();
+        // Specify the request method and URL
+        xhr.open('GET', '/database.json', true);
+        // Set the callback function to handle the response
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    try {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        resolve(jsonResponse);
+                    } catch (error) {
+                        reject('Error parsing JSON: ' + error.message);
+                    }
+                } else {
+                    reject('Error loading /database.json. Status code: ' + xhr.status);
+                }
+            }
+        };
+        // Send the request
+        xhr.send();
+    });
+}
+
+async function asyncLoadJSON() {
+    if (!units || !modifiers || !unitmodifiers || !unitswithmodifiers) {
+        try {
+            const data = await loadJSON();
+            // Now, 'data' contains the parsed JSON object from '/database.json'
+            if (data.hasOwnProperty('units') 
+            && data.hasOwnProperty('modifiers') 
+            && data.hasOwnProperty('unitmodifiers') 
+            && data.hasOwnProperty('unitswithmodifiers')) {
+                units = data.units;
+                modifiers = data.modifiers;
+                unitmodifiers = data.unitmodifiers;
+                unitswithmodifiers = data.unitswithmodifiers;
+            }   
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
 function addPlayer(txt) {
     // Check that txt is a nonempty string of only letters
     const regex = /[a-zA-Z]+/;
@@ -999,9 +1080,31 @@ function addPlayer(txt) {
 
 console.log(`THE HOST_URI IS: ${hosturi}`)
 
+// // If units, modifiers, unitmodifiers, or unitswithmodifiers are null, attempt to load the data from JSON.
+// if (!units || !modifiers || !unitmodifiers || !unitswithmodifiers) {
+//     console.log(`Attempting to load data from JSON (instead of from a database)`);
+//     loadJSON(function (err,data) {
+//         if (err) {
+//             console.error(err);
+//         } else {
+//             // Now, 'data' contains the parsed JSON object from '/database.json'
+//             if (data.hasOwnProperty('units') 
+//                 && data.hasOwnProperty('modifiers') 
+//                 && data.hasOwnProperty('unitmodifiers') 
+//                 && data.hasOwnProperty('unitswithmodifiers')) {
+//                 units = data.units;
+//                 modifiers = data.modifiers;
+//                 unitmodifiers = data.unitmodifiers;
+//                 unitswithmodifiers = data.unitswithmodifiers;
+//             }
+//         }
+//     });
+//     await asyncLoadJSON();
+// }
+
 const tabcontainer = document.querySelector('.tab-container');
 const numTabs = tabcontainer.querySelectorAll('.tab').length;
-
+asyncLoadJSON();
 var state;
 var displayState = {};
 showCurrentTab();
