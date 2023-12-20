@@ -8,10 +8,10 @@ the state / 'data' cookie ends up holding a structure like this:
             player: "Tim"
             units: [
                 {
-                    unit: ##unit##
+                    unit: ##unitID##
                     quantity: 3,
                     mods: [
-                        ##MOD##
+                        ##modID##
                     ]
                 }
             ]
@@ -32,6 +32,14 @@ var woundData = [
     ['3', '3', '3', '3', '3', '3',   '4',   '4',   '5',   '5'  ],       // 8
     ['3', '3', '3', '3', '3', '3',   '3',   '4',   '4',   '5'  ],       // 9
     ['3', '3', '3', '3', '3', '3',   '3',   '3',   '4',   '4'  ],       // 10
+];
+
+// To save space within the cookie, all units' stats are stored in an array on that unit.
+// i.e. armies.find( a => a.player === playerName).units[i].stats = [array, of, stats, of, this, unit]
+// The stats should appear in this sequence.
+var statNames = [
+    "melee", "ranged", "strength", "defence", "attack",
+    "wounds", "courage", "might", "will", "fate", "rangedstrength"
 ]
 
 var linkPrefix = "https://lotr.timsullivan.online";
@@ -258,25 +266,19 @@ function renderArmyComparisonList(ele) {
             let unitModsHTML = '';
             let pointCost = thisUnit.pts;
             if (unit.mods) {
-                // unit.mods.forEach(mod => {
-                //     unitModsHTML += `
-                //         <div class="unit-mod-display">
-                //             <span>${mod.name} (+${mod.pts})</span>
-                //             <span><em>${mod.details}</em></span>
-                //         </div>
-                //     `;
-                // });
                 pointCost += unit.mods.reduce((acc,cur)=>{
                     const mod = getModByID(cur);
                     return acc + mod.pts;
                 },0);
             }
+            // Get the stats array for the unit. Turn the stats array into an obect, using the stat names as keys
+            const unitStatsObj = statsArrayToObject(unit.stats);
             tabContentListHTML += `
                 <li class="unit-list-item" unitindex="${idx}" onclick="handleUnitComparisonListClick(event,${idx},'${army.player}')">
                     <div class="flex-row">
                         <span class="unit-list-item-header"><b>${thisUnit.name}</b></span>
                         <div class="stats-grid-container inline">
-                            ${renderStatsGrid2(thisUnit, true)}
+                            ${renderStatsGrid2(unitStatsObj, true)}
                         </div>
                     </div>
                     <div class="flex-col">${unitModsHTML}</div>
@@ -354,7 +356,10 @@ function handleUnitComparisonListClick(event,idx,player) {
             console.error(`Attempted to highlight nonexistent child item of unit-list in Step 3: (index: ${idx})`);
         }
     }
-    renderUnitCompareDetails(totalStats, unit.mods, event.target);
+    const unitStatsObj = statsArrayToObject(unit.stats);
+    unitStatsObj['name'] = thisUnit.name;
+    unitStatsObj['pts'] = thisUnit.pts;
+    renderUnitCompareDetails(unitStatsObj, unit.mods, event.target);
     // update the displayState
     // But first, is this the left or the right pane?
     const pane = findParent(event.target, '.unit-compare-pane');
@@ -362,6 +367,7 @@ function handleUnitComparisonListClick(event,idx,player) {
         // i should be 0 for the left pane and 1 for the right pane
         const i = Array.from(pane.parentNode.children).indexOf(pane);
         const selectedListItem = unitCompareList.querySelector('li.active');
+        // Cache the selected item, so that it can be set to active later on. (see handleStatAdjust)
         displayState[`pane-${i}`] = {
             unitID: thisUnit.unitID,
             clickedStrength: totalStats.strength,
@@ -443,7 +449,8 @@ function handleStatAdjust(event, unitRef) {
 
     // Adjust the correct stat for the unit.
     // Note that doing this means the state has unsaved changes
-    unitRef.unit[stat] += change;
+    const statIndex = statNames.indexOf(stat.toLowerCase());
+    unitRef.stats[statIndex] += change;
     
     // Re-draw the details. Need to re-draw the unit comparison list, and re-draw the unit details.
     const panes = document.querySelectorAll('.unit-compare-pane');
@@ -459,20 +466,16 @@ function handleStatAdjust(event, unitRef) {
         
         // Using the list item cached in the display state, set that list item to active again
         if (displayState && displayState[`pane-${i}`] && displayState[`pane-${i}`]['selectedListItem'] && displayState[`pane-${i}`]['selectedPlayer']) {
+            // WHY ISNT THE RIGHT UNIT/PLAYER BEING ACTIVATED? iS IT NOT BEING CACHED???
             // Make sure the correct player tab is shown
             const player = displayState[`pane-${i}`]['selectedPlayer'];
             activatePlayerTab(tabCtl, player);
-            
             // Set the list item to be active again.
             const li = displayState[`pane-${i}`]['selectedListItem'];
-            //li.click();
-            //Get the unit index ?
             const idx = li.getAttribute('unitindex');
-            //const ele = li.querySelector('.unit-list-item-header');
-            //handleUnitComparisonListClick({target: ele}, idx, player);
-            // Problem: cant use li to set the target of the event. I need to look it up 
             const playerTab = tabCtl.querySelector(`.player-tab-content-${player}`);
             const ele = playerTab?.querySelector('.unit-list > *');
+            // Pretend to click the item. Create a fake "event" that just contains the 'target' attribute.
             if (ele) {
                 handleUnitComparisonListClick({target: ele}, idx, player);
             }
@@ -828,6 +831,15 @@ function renderSelectionList(selectionEle, arrKeys, arrValues, showNum = 1) {
     selectionEle.innerHTML = html;
 }
 
+function statsArrayToObject(arr) {
+    // Turn an array of stats into an object of stats.
+    const statsObj = {};
+    statNames.forEach( (statName, i) => {
+        statsObj[statName] = arr[i];
+    });
+    return statsObj;
+}
+
 async function showCurrentTab() {
     const tabcontainer = document.querySelector('.tab-container');
     if (!tabcontainer) return;
@@ -957,11 +969,22 @@ function establishCallbacks() {
                 };
                 state.armies.push(playerArmy);
             }
-            playerArmy.units.push({
+            const unitData = {
                 unitID: displayState.unitSelectionSelectedUnit.unitID,
                 mods: (displayState.unitSelectionSelectedMods) ? displayState.unitSelectionSelectedMods.map( mod => {return mod.modifierID || null}) : [],
-                quantity: parseInt(displayState.selectionQuantity)
+                quantity: parseInt(displayState.selectionQuantity),
+                stats: []
+            };
+            // Add the stats for this unit, as an array.
+            const totalStats = statsWithMods(unitData);
+            Object.keys(totalStats).forEach( (statName) => {
+                if (statNames.includes(statName)) {
+                    const statVal = totalStats[statName];
+                    const statIdx = statNames.indexOf(statName);
+                    unitData.stats[statIdx] = statVal;
+                }
             });
+            playerArmy.units.push(unitData);
             saveState();
             const armyDisplayEle = document.getElementById('unitDisplayTabControl');
             renderArmyDisplay(armyDisplayEle);
