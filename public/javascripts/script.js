@@ -340,14 +340,11 @@ function handleUnitComparisonListClick(event,idx,player) {
     // Highlight the clicked item
     const unitCompareList = findParent(event.target, '.unit-list');
     if (unitCompareList) {
-        // Array.from(unitCompareList.children).forEach( li => {
-        //     li.classList.remove('active');
-        // });
         const mainTab = findParent(event.target, '.unit-compare-pane');
         if (mainTab) {
             Array.from(mainTab.querySelectorAll('.unit-list-item')).forEach( li => {
                 li.classList.remove('active');
-            })
+            });
         }
         try {
             unitCompareList.children[idx].classList.add('active');
