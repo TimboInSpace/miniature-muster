@@ -14,12 +14,10 @@ class DbConnection {
 
     initializeTables() {
         this.shouldRebuildDatabase().then((shouldRebuild => {
-            if (shouldRebuild || true) {
+            if (shouldRebuild) {
                 console.log('The database should be rebuilt');
                 this.rebuildDatabase3();
                 console.info('Successfully rebuilt database.');
-            } else {
-                console.log('Database is at current version');
             }
         })).catch((err)=>{
             console.error(`Encountered an error while checking if the database should be rebuilt:\n${err}`);
@@ -36,9 +34,10 @@ class DbConnection {
                     console.log(err);
                     resolve(true);
                 }
-                if (!row || parseFloat(row.val) < queries.dbVersion) {
+                if (!row || parseFloat(row.param_val) < queries.dbVersion) {
                     resolve(true);
                 }
+                console.info(`Loaded SQLite database with version: ${parseFloat(row.param_val).toFixed(2)}`);
                 resolve(false);
             });
         });
@@ -131,6 +130,5 @@ class Database {
     }
 
 }
-
 
 module.exports = Database;
