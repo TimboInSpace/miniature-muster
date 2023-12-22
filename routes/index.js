@@ -8,10 +8,10 @@ var hosturi = process.env.HOST_URI || "https://lotr.timsullivan.online";
 async function selectAllData() {
   // This used to be where the database queries were. If these variables are passed to the client as null,
   // then the client will simply load the JSON dataset instead, eliminating the need for a database at all.
-  allunits = null;
-  allmodifiers = null;
-  allunitmodifiers = null;
-  allunitswithmodifiers = null;
+  allunits = "[]";
+  allmodifiers = "[]";
+  allunitmodifiers = "[]";
+  allunitswithmodifiers = "[]";
 }
 
 /* GET home page. */
@@ -25,7 +25,8 @@ router.get('/new', function(req,res,next) {
 });
 
 router.get('/load/:cookiedata', function(req,res,next) {
-  const decoded = decodeURIComponent(atob(req.params.cookiedata));
+  //const decoded = decodeURIComponent(atob(req.params.cookiedata));
+  const decoded = decodeURIComponent(Buffer.from(req.params.cookiedata,'base64'));
   res.cookie('data', decoded, { maxAge: 900000, httpOnly: false, samesite: 'none'});
   res.redirect('/');
 });

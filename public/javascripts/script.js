@@ -44,7 +44,10 @@ var statNames = [
 
 var linkPrefix = "https://lotr.timsullivan.online";
 
-var units, modifiers, unitmodifiers, unitswithmodifiers;
+var units = [];
+var modifiers = [];
+var unitmodifiers = [];
+var unitswithmodifiers = [];
 
 function getCookie(name) {
     var cookieValue = "";
@@ -1039,7 +1042,11 @@ function loadJSON() {
 }
 
 async function asyncLoadJSON() {
-    if (!units || !modifiers || !unitmodifiers || !unitswithmodifiers) {
+    if (!units || !modifiers || !unitmodifiers || !unitswithmodifiers ||
+        units.length === 0 || 
+        modifiers.length === 0 || 
+        unitmodifiers.length === 0 || 
+        unitswithmodifiers.length === 0 ) {
         try {
             const data = await loadJSON();
             // Now, 'data' contains the parsed JSON object from '/database.json'
@@ -1074,30 +1081,6 @@ function addPlayer(txt) {
     setCookie('data', JSON.stringify(state));
     renderStep();
 }
-
-console.log(`THE HOST_URI IS: ${hosturi}`)
-
-// // If units, modifiers, unitmodifiers, or unitswithmodifiers are null, attempt to load the data from JSON.
-// if (!units || !modifiers || !unitmodifiers || !unitswithmodifiers) {
-//     console.log(`Attempting to load data from JSON (instead of from a database)`);
-//     loadJSON(function (err,data) {
-//         if (err) {
-//             console.error(err);
-//         } else {
-//             // Now, 'data' contains the parsed JSON object from '/database.json'
-//             if (data.hasOwnProperty('units') 
-//                 && data.hasOwnProperty('modifiers') 
-//                 && data.hasOwnProperty('unitmodifiers') 
-//                 && data.hasOwnProperty('unitswithmodifiers')) {
-//                 units = data.units;
-//                 modifiers = data.modifiers;
-//                 unitmodifiers = data.unitmodifiers;
-//                 unitswithmodifiers = data.unitswithmodifiers;
-//             }
-//         }
-//     });
-//     await asyncLoadJSON();
-// }
 
 const tabcontainer = document.querySelector('.tab-container');
 const numTabs = tabcontainer.querySelectorAll('.tab').length;
