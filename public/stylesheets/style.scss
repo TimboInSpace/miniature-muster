@@ -34,10 +34,8 @@ $font-dark: #0C70D4;
   
 }
 main {
-  // padding: 2rem 2rem 0 2rem;
   font: $text-main;
   height: calc(100vh - 9rem);
-  // overflow-y: scroll;
 }
 
 body {
@@ -146,15 +144,6 @@ nav.header {
   }
 }
 
-// button:hover:enabled, a:hover:enabled {
-//   transition: ease-in-out 0.2s;
-//   &:hover {
-//     text-shadow: 0px 0px 1px whitesmoke;
-//     box-shadow: 0px 0px 10px $font-semidark inset;
-//     text-decoration: underline;
-//   }
-// }
-
 button, a, input[type='submit'], .pseudobutton {
   transition: ease-in-out 0.2s;
   &:hover:enabled {
@@ -185,8 +174,8 @@ button, a, input[type='submit'], .pseudobutton {
 }
 
 .tab-container {
-  // height: calc(100vh - 12rem);
-  height: 100%;
+  margin-bottom: 3rem;
+  overflow-y: scroll;
   .tab {
     display: none;
     width: 100%;
@@ -196,14 +185,12 @@ button, a, input[type='submit'], .pseudobutton {
     height: 100%;
     justify-content: stretch;
     .tab-main {
-      // flex-grow: 1;
       flex: 1;
       display: flex;
       flex-direction: column;
     }
   }
   .tab.active {
-    // display: block;
     display: flex;
   }
 }
@@ -219,7 +206,7 @@ button, a, input[type='submit'], .pseudobutton {
 
 footer {
   height: 3rem;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   width: 100%;
   font-size: 0.6rem;
@@ -368,8 +355,6 @@ footer {
   padding: 0;
   margin: 0;
   margin-bottom: 0.5rem;
-  // display: flex;
-  // flex-direction: column;
   > * {
     width: 100%;
     display: block;
@@ -390,7 +375,6 @@ footer {
     background-color: $bg-dark;
     border-radius: 0.5rem;
     .grid-item {
-      // font: $heading-large;
       font-size: 0.75rem;
     }
     .flex-row {
@@ -401,9 +385,7 @@ footer {
     }
     .unit-list-item-header {
       align-items: center;
-      // margin-bottom: 0.5rem;
       > * {
-        // margin-left: 0.5rem;
         :first-child {
           margin-left: 0;
         }
@@ -439,7 +421,6 @@ footer {
 
 .unit-compare-pane {
   .unit-list-item-header{
-    // margin: 1.5rem 0 0;
     display: inline-block;
     width: 15em;
 
@@ -514,11 +495,12 @@ footer {
 }
 
 .tab-overlay-container {
-  position: absolute; 
+  position: fixed; 
   top: 10rem;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(64,64,64,0.4);
+  background-color: rgba(16,16,16,0.6);
+  border-radius: 0.5rem;
   transition: ease-in-out 0.2s;
   .tab-overlay.unit-comparison {
     width: 10rem;

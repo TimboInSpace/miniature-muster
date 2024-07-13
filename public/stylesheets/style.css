@@ -153,7 +153,8 @@ button:disabled, a:disabled, input[type=submit]:disabled, .pseudobutton:disabled
 }
 
 .tab-container {
-  height: 100%;
+  margin-bottom: 3rem;
+  overflow-y: scroll;
 }
 .tab-container .tab {
   display: none;
@@ -182,7 +183,7 @@ button:disabled, a:disabled, input[type=submit]:disabled, .pseudobutton:disabled
 
 footer {
   height: 3rem;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   width: 100%;
   font-size: 0.6rem;
@@ -440,11 +441,12 @@ footer {
 }
 
 .tab-overlay-container {
-  position: absolute;
+  position: fixed;
   top: 10rem;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(64, 64, 64, 0.4);
+  background-color: rgba(16, 16, 16, 0.6);
+  border-radius: 0.5rem;
   transition: ease-in-out 0.2s;
 }
 .tab-overlay-container .tab-overlay.unit-comparison {
