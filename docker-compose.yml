@@ -4,13 +4,10 @@ services:
     restart: always
     container_name: miniature-muster_nodejs
     pull_policy: build
-    env_file:
-      - stack.env
-    #ports:
-    #  - 3000:3000
-    networks:
-      - reverse_proxy
-
-networks:
-  reverse_proxy:
-    external: true
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST_URI=http://localhost:3000
+      - DB_TYPE=json
+    ports:
+      - 3000:3000
