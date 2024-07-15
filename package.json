@@ -6,7 +6,7 @@
     "start": "node ./bin/www",
     "dev": "nodemon ./bin/www & npm run scss",
     "scss": "sass --watch public/stylesheets/style.scss public/stylesheets/style.css",
-    "export-json": "node export-sqlite-to-json.js"
+    "export-json": "node ./src/export-sqlite-to-json.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

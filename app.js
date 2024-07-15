@@ -22,35 +22,27 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', require('./routes/index'));
 
-// if (process.env.DB_TYPE && process.env.DB_TYPE === 'mysql') {
-//   // Use MySQL
-//   const { MySqlDatabase } = require('./mysql-db.js');
-//   const db = new MySqlDatabase();
-//   async function testSql() {
-//     var connection = await db.connect({
-//       host: process.env.MYSQL_HOST,
-//       port: process.env.MYSQL_PORT || 3306,
-//       user: process.env.MYSQL_APP_USER,
-//       password: process.env.MYSQL_APP_PASS,
-//       database: process.env.MYSQL_DATABASE
-//     });
-//     try {
-//       const result = await db.query('SELECT * FROM Params');
-//       console.log('Query result:', result);
-//     } catch (error) {
-//       console.error('Error executing query:', error);
-//     }
-//   }
-//   testSql();
-//   app.locals.db = db;
-// }
-// if (process.env.DB_TYPE && (process.env.DB_TYPE === 'sqlite' || process.env.DB_TYPE === 'sqlite3')) {
-//   var connection = require('./sqlite-db.js').getConnection();
-//   app.locals.db = connection;
-// }
+if (process.env.DB_TYPE && process.env.DB_TYPE === 'mysql') {
+  // Use MySQL
+  const { MySqlDatabase } = require(path.join(__dirname, 'src', 'mysql-db.js'));
+  const db = new MySqlDatabase();
+  async function connect() {
+    var connection = await db.connect({
+      host: process.env.MYSQL_HOST,
+      port: process.env.MYSQL_PORT || 3306,
+      user: process.env.MYSQL_APP_USER,
+      password: process.env.MYSQL_APP_PASS,
+      database: process.env.MYSQL_DATABASE
+    });
+    return connection;
+  }
+  app.locals.db = connect();
+}
 
-
-// app.locals.allunits = app.locals.db.getData();
+if (process.env.DB_TYPE && (process.env.DB_TYPE === 'sqlite' || process.env.DB_TYPE === 'sqlite3')) {
+  var connection = require(path.join(__dirname, 'src', 'sqlite-db.js')).getConnection();
+  app.locals.db = connection;
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -71,6 +63,6 @@ app.use(function(err, req, res, next) {
 // Print Node.js version, npm version
 const { execSync } = require('child_process');
 const npmVersion = execSync('npm -v').toString().trim();
-console.info(`miniature-muster is running using node ${process.version} and npm ${npmVersion}`);
+console.info(`miniature-muster is now running at ${process.env.HOST_URI}\n(node version ${process.version} and npm ${npmVersion})`);
 
 module.exports = app;

@@ -6,7 +6,8 @@ For organizing character sheets and providing combat outcomes for the LOTR table
 ## Installation
 
 > I'm currently running this at https://lotr.timsullivan.online. Feel free to use it there, instead of installing locally! No promises that I'll keep that domain in the future :sweat_smile:
-> If you want to make changes to the unit or equipment lists, you'll need to install your own copy.
+>
+> *If you want to make changes to the unit or equipment lists, you'll need to install your own copy*.
 
 Installation requires three steps:
 
@@ -22,7 +23,6 @@ First, get a copy of the repo
 # First, clone the repo
 git clone https://github.com/TimboInSpace/miniature-muster.git
 cd miniature-muster
-
 ```
 
 
@@ -100,7 +100,7 @@ This step is to be used while playing the match, for showing combat outcomes. Se
 
 Step 3 shows two functionally-identical panes on the left and right, listing units in each army:
 
-<img src="step 3 units.png" alt="step 3 units" style="zoom: 67%;" />
+<img src="images/step 3 units.png" alt="step 3 units" style="zoom: 67%;" />
 
 
 
@@ -108,7 +108,7 @@ Step 3 shows two functionally-identical panes on the left and right, listing uni
 
 Step 3 also shows a pane at the bottom for displaying combat outcomes:
 
-<img src="step 3 outcomes.png" alt="step 3 outcomes" style="zoom:73%;" />
+<img src="images/step 3 outcomes.png" alt="step 3 outcomes" style="zoom:73%;" />
 
 
 
@@ -116,7 +116,7 @@ Step 3 also shows a pane at the bottom for displaying combat outcomes:
 
 This step is also useful for recordkeeping during the match. The *wounds* stat and *might / will / fate* can freely be increased or decreased by clicking the little buttons next to those stats in the unit's stat display:
 
-![step 3 character stats](step 3 character stats.png)
+![step 3 character stats](images/step 3 character stats.png)
 
 
 
@@ -142,7 +142,7 @@ When I made this application, I wrote stat sheets for all units up to and includ
 
 First, you'll need to add the unit into the database: open up `database.sqlite` in your favourite database program, or just use `sqlite3` if you're hardcore. Any database program that can interface with SQLite will work. One suggestion I have is `DBeaver` but use whatever.
 
-![database screenshot](database screenshot.png)
+![database screenshot](images/database screenshot.png)
 
 ##### (1) Define equipment
 
@@ -191,8 +191,9 @@ I made this application for my own personal use. I didn't really put a lot of ef
 
 ## To Do
 
-- [ ] Fix the Click event bug shown in [Disclaimer](#Disclaimer).
+- [ ] Fix the Click event bug noted in [Disclaimer](#Disclaimer).
 - [ ] On the Step 3 page, there should be a small icon on the unit indicating special equipment, or maybe just whether or not the unit is ranged. This could take the form of a tiny icon in the corner of the unit, or maybe a blurred/darkened icon underneath the unit text?
+- [ ] On Step 3 make the Attacker/Defender toggle "sticky" when scrolling
 - [ ] Add **spells** to units. You should be able to click on a unit in the Step 3 page and see what spells it has, with a short summary of each. 
 
 

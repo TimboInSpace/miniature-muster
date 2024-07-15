@@ -1,0 +1,14 @@
+services:
+  miniature-muster:
+    build: .
+    restart: always
+    container_name: miniature-muster_nodejs
+    pull_policy: build
+    env_file:
+      - stack.env
+    networks:
+      - reverse_proxy
+
+networks:
+  reverse_proxy:
+    external: true

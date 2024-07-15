@@ -42,7 +42,7 @@ var statNames = [
     "wounds", "courage", "might", "will", "fate", "rangedstrength"
 ]
 
-var linkPrefix = "https://lotr.timsullivan.online";
+var linkPrefix = document.location.href.replace(/\/#$/, "").replace(/\/$/, "");
 
 var units = [];
 var modifiers = [];

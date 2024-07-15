@@ -19,7 +19,7 @@ function saveJSON(obj) {
     // Convert the JSON data to a string
     const jsonString = JSON.stringify(obj, null, 2);
     // Specify the file path
-    const filePath = `./public/${jsonFileName}`;
+    const filePath = `public/${jsonFileName}`;
     // Write the JSON string to a file
     fs.writeFile(filePath, jsonString, 'utf8', (err) => {
         if (err) {
